@@ -12,13 +12,12 @@ node.parentNode.insertBefore(gptLib, node);
 var prebid = document.createElement('script');
 prebid.type = 'text/javascript';
 prebid.async = true;
-prebid.src = '//static.amp.services/prebid' + (streamampConfig.prebidJsVersion || '2.26.0') + '.js';
+prebid.src = '//static.amp.services/prebid2.26.0.js';
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(prebid, node);
 
 // Load apstag library
 !function(a9,a,p,s,t,A,g){if(a[a9])return;function q(c,r){a[a9]._Q.push([c,r])}a[a9]={init:function(){q("i",arguments)},fetchBids:function(){q("f",arguments)},setDisplayBids:function(){},targetingKeys:function(){return[]},_Q:[]};A=p.createElement(s);A.async=!0;A.src=t;g=p.getElementsByTagName(s)[0];g.parentNode.insertBefore(A,g)}("apstag",window,document,"script","//c.amazon-adsystem.com/aax2/apstag.js");
-
 
 // Initialize CMP if enabled
 if (streamampConfig.cmp.isEnabled) {
@@ -255,10 +254,12 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 // Initialize apstag
-apstag.init({
-    pubID: '16268e26-dabe-4bf4-a28f-b8f4ee192ed3',
-    adServer: 'googletag'
-});
+if(streamampConfig.a9Enabled) {
+    apstag.init({
+        pubID: '16268e26-dabe-4bf4-a28f-b8f4ee192ed3',
+        adServer: 'googletag'
+    });
+}
 
 // Define ad slots and size mapping with GPT
 
@@ -328,7 +329,11 @@ var adUnits = streamampConfig.adUnits;
 // Fetch header bids
 function fetchHeaderBids() {
     // Declare header bidders
-    var bidders = ['a9', 'prebid'];
+    var bidders = ['prebid'];
+
+    if(streamampConfig.a9Enabled) {
+        bidders = ['a9', 'prebid'];
+    }
 
     // Keep track of bidders state to determine when to send ad server request
     var requestManager = {
@@ -386,7 +391,11 @@ function fetchHeaderBids() {
         requestManager.sendAdServerRequest = true;
         // Set bid targeting and make ad request to GAM
         googletag.cmd.push(function() {
-            apstag.setDisplayBids();
+
+            if(streamampConfig.a9Enabled) {
+                apstag.setDisplayBids();
+            }
+
             pbjs.setTargetingForGPTAsync();
             googletag.pubads().refresh();
         });
@@ -395,12 +404,14 @@ function fetchHeaderBids() {
     // Request all bids
     function requestBids(apstagSlots, adUnits, bidTimeout) {
         // Request bids from apstag
-        apstag.fetchBids({
-            slots: apstagSlots,
-            timeout: bidTimeout
-        }, function(bids) {
-            headerBidderBack('a9');
-        });
+        if(streamampConfig.a9Enabled) {
+            apstag.fetchBids({
+                slots: apstagSlots,
+                timeout: bidTimeout
+            }, function (bids) {
+                headerBidderBack('a9');
+            });
+        }
         // Request bids from prebid
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
@@ -539,11 +550,13 @@ function fetchHeaderBids() {
 //   }
 
 function refreshBids() {
-    apstag.fetchBids({
-        slots: apstagSlots,
-        timeout: bidTimeout
-    }, function(bids) {
-    });
+    if(streamampConfig.a9Enabled) {
+        apstag.fetchBids({
+            slots: apstagSlots,
+            timeout: bidTimeout
+        }, function (bids) {
+        });
+    }
     pbjs.que.push(function() {
         pbjs.requestBids({
             timeout: bidTimeout,
@@ -551,7 +564,9 @@ function refreshBids() {
             bidsBackHandler: function() {
             },
         });
-        apstag.setDisplayBids();
+        if(streamampConfig.a9Enabled) {
+            apstag.setDisplayBids();
+        }
         pbjs.setTargetingForGPTAsync(gptSlotsCodes);
         googletag.pubads().refresh(gptSlots);
     });
