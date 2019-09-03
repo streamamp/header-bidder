@@ -37,7 +37,33 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 function initialize() {
-
+    
+// Function to filter ad units using toggle on/off arrays
+    function filterToggleOnOff() {
+        var filteredAdUnits = streamampConfig.adUnits;
+    
+        if(window.AD_UNITS_TOGGLE_ON) {
+            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
+                // Only keep ad units that ARE in the TOGGLE_ON array
+                return window.AD_UNITS_TOGGLE_ON.indexOf(adUnit.code) !== -1;
+            })
+        } else {
+            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
+                // Keep all ad units that are NOT in the TOGGLE_OFF array
+                return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnit.code) === -1;
+            })
+        }
+        
+        return filteredAdUnits;
+    };
+    
+// Check if toggle on/off is in use and filter streamampConfig adUnits
+    if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
+        // Update streamampConfig adUnits to use the filteredAdUnits
+        streamampConfig.adUnits = filterToggleOnOff();
+    };
+    
+    
 // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
         initializeCmp()
