@@ -21,7 +21,7 @@ node.parentNode.insertBefore(gptLib, node);
 var prebid = document.createElement('script');
 prebid.type = 'text/javascript';
 prebid.async = true;
-prebid.src = '//static.amp.services/prebid' + (streamampConfig.prebidJsVersion || '2.26.0') + '.js';
+prebid.src = '//static.amp.services/prebid' + (streamampConfig.prebidJsVersion || '2.28.0') + '.js';
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(prebid, node);
 
