@@ -366,7 +366,7 @@ function initialize() {
     });
 
 // Set universal timeout
-    var bidTimeout = streamampConfig.bidTimeout || 2000;
+    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
 
 // Define apstag slots
     var apstagSlots = streamampConfig.adUnits.map(function (adUnit) {
