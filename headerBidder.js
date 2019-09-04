@@ -21,7 +21,7 @@ node.parentNode.insertBefore(gptLib, node);
 var prebid = document.createElement('script');
 prebid.type = 'text/javascript';
 prebid.async = true;
-prebid.src = '//static.amp.services/prebid' + (streamampConfig.prebidJsVersion || '2.26.0') + '.js';
+prebid.src = '//static.amp.services/prebid' + (streamampConfig.prebidJsVersion || '2.28.0') + '.js';
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(prebid, node);
 
@@ -37,6 +37,17 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 function initialize() {
+
+// Enable Analytics Module
+    pbjs.que.push(function () {
+        pbjs.enableAnalytics({
+            provider: 'streamamp',
+            options: {
+                publisher_id: streamampConfig.publisher_id,
+                token: streamampConfig.token
+            }
+        });
+    });
     
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
@@ -63,7 +74,6 @@ function initialize() {
         streamampConfig.adUnits = filterToggleOnOff();
     };
     
-    
 // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
         initializeCmp()
@@ -84,7 +94,7 @@ function initialize() {
         scpt.parentNode.insertBefore(elem, scpt);
         (function () {
             var gdprAppliesGlobally = false;
-            
+
             function addFrame() {
                 if (!window.frames['__cmpLocator']) {
                     if (document.body) {
@@ -101,9 +111,9 @@ function initialize() {
                     }
                 }
             }
-            
+
             addFrame();
-            
+
             function cmpMsgHandler(event) {
                 var msgIsString = typeof event.data === "string";
                 var json;
@@ -127,7 +137,7 @@ function initialize() {
                     });
                 }
             }
-            
+
             window.__cmp = function (c) {
                 var b = arguments;
                 if (!b.length) {
@@ -154,17 +164,17 @@ function initialize() {
                 window.attachEvent('onmessage', cmpMsgHandler);
             }
         })();
-        
+
         // Initialize CMP with custom configuration
         window.__cmp('init', streamampConfig.cmp.config);
-        
+
         // Apply custom CMP styles if true
         if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.style)) {
             var style = document.createElement('style');
             var ref = document.querySelector('script');
-            
+
             var quantcastTheme = streamampConfig.cmp.styles;
-            
+
             style.innerHTML =
                 // Background
                 (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
@@ -291,7 +301,7 @@ function initialize() {
                      '}'
                  : '') +
                 '}';
-            
+
             ref.parentNode.insertBefore(style, ref);
         }
     }
@@ -309,18 +319,18 @@ function initialize() {
 // Set empty arrays for GPT units and codes
     var gptSlots = [];
     var gptSlotsCodes = [];
-    
+
     googletag.cmd.push(function () {
         function singleBreakpointSizeMapping(minWidth, sizesSuppport) {
             return googletag.sizeMapping().addSize([minWidth, 0], sizesSuppport).build()
         }
-        
+
         function allBreakpointsSizeMapping(adunit) {
             return streamampConfig.breakpoints.map(function (breakpoint, index) {
                 return singleBreakpointSizeMapping(breakpoint.minWidth, compareAdUnitBreakpointSizes(adunit, breakpoint.sizesSupported))[0]
             })
         }
-        
+
         function compareAdUnitBreakpointSizes(adUnitSizes, breakpoints) {
             var matchingSizes = []
             breakpoints.forEach(function (breakpoint) {
@@ -332,7 +342,7 @@ function initialize() {
             });
             return matchingSizes
         }
-        
+
         function gptSizeMappingDefineSlots() {
             return streamampConfig.adUnits.map(function (adUnit) {
                 var gptSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
@@ -343,9 +353,9 @@ function initialize() {
                 return gptSlot
             })
         }
-        
+
         gptSizeMappingDefineSlots();
-        
+
         googletag.pubads().disableInitialLoad();
         googletag.pubads().collapseEmptyDivs(streamampConfig.hasCollapsedEmptyDivs);
         googletag.pubads().enableSingleRequest();
@@ -372,21 +382,21 @@ function initialize() {
     function fetchHeaderBids() {
         // Declare header bidders
         var bidders = ['prebid'];
-        
+
         if (streamampConfig.a9Enabled) {
             bidders = ['a9', 'prebid'];
         }
-        
+
         // Keep track of bidders state to determine when to send ad server request
         var requestManager = {
             adserverRequestSent: false,
         };
-        
+
         // Loop through bidder array and add the bidders to the request manager
         bidders.forEach(function (bidder) {
             requestManager[bidder] = false;
         });
-        
+
         // Return true if all bidders have returned
         function allBiddersBack() {
             var allBiddersBack = bidders
@@ -400,7 +410,7 @@ function initialize() {
                 .length === bidders.length;
             return allBiddersBack;
         }
-        
+
         // Handler for header bidder responses
         function headerBidderBack(bidder) {
             // Return early if request to adserver is already sent
@@ -418,7 +428,7 @@ function initialize() {
                 sendAdServerRequest();
             }
         }
-        
+
         // Get ads from GAM
         function sendAdServerRequest() {
             // Return early if request already sent
@@ -433,16 +443,16 @@ function initialize() {
             requestManager.sendAdServerRequest = true;
             // Set bid targeting and make ad request to GAM
             googletag.cmd.push(function () {
-                
+
                 if (streamampConfig.a9Enabled) {
                     apstag.setDisplayBids();
                 }
-                
+
                 pbjs.setTargetingForGPTAsync();
                 googletag.pubads().refresh();
             });
         }
-        
+
         // Request all bids
         function requestBids(apstagSlots, adUnits, bidTimeout) {
             // Request bids from apstag
@@ -516,9 +526,9 @@ function initialize() {
                 });
             });
         }
-        
+
         requestBids(apstagSlots, adUnits, bidTimeout);
-        
+
         // Set timeout to send request to call sendAdServerRequest() after timeout if all bidders haven't returned before then
         window.setTimeout(function () {
             sendAdServerRequest();
@@ -590,7 +600,7 @@ function initialize() {
 //       }
 //     }
 //   }
-    
+
     function refreshBids() {
         if (streamampConfig.a9Enabled) {
             apstag.fetchBids({
@@ -631,7 +641,7 @@ function initialize() {
 
 // Refresh bids handler
     window.adRefreshTimer = null;
-    
+
     var refreshAds = function () {
         if (window.adRefreshTimer) {
             window.clearInterval(window.adRefreshTimer);
@@ -643,7 +653,7 @@ function initialize() {
         }, streamampConfig.refreshBidsTimeout * 1e3);
     };
     refreshAds();
-    
+
     window.onfocus = function () {
         refreshAds();
     };
@@ -651,5 +661,5 @@ function initialize() {
         window.clearInterval(window.adRefreshTimer);
         window.adRefreshTimer = null;
     };
-    
+
 };
