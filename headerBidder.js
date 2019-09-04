@@ -347,6 +347,8 @@ function initialize() {
             return streamampConfig.adUnits.map(function (adUnit) {
                 var gptSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
                     .defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes))
+                    // // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
+                    // .setForceSafeFrame(adUnit.safeFrame || false)
                     .addService(googletag.pubads())
                 gptSlots.push(gptSlot)
                 gptSlotsCodes.push(adUnit.code)
