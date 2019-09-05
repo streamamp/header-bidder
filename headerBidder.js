@@ -21,7 +21,7 @@ node.parentNode.insertBefore(gptLib, node);
 var prebid = document.createElement('script');
 prebid.type = 'text/javascript';
 prebid.async = true;
-prebid.src = '//static.amp.services/prebid' + (streamampConfig.prebidJsVersion || '2.28.0') + '.js';
+prebid.src = '//static.amp.services/prebid2.28.0.js';
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(prebid, node);
 
@@ -307,7 +307,6 @@ function initialize() {
     }
 
 
-
 // Initialize apstag
     apstag.init({
         pubID: '16268e26-dabe-4bf4-a28f-b8f4ee192ed3',
@@ -466,6 +465,16 @@ function initialize() {
                     headerBidderBack('a9');
                 });
             }
+
+            // Define aliased adapters
+            adUnits.forEach(function (adUnit) {
+                adUnit.bids.forEach(function (bid) {
+                    if (bid.bidder === 'streamamp' || bid.bidder === 'totaljobs') {
+                        pbjs.aliasBidder('appnexus', bid.bidder)
+                    }
+                })
+            })
+
             // Request bids from prebid
             pbjs.que.push(function () {
                 pbjs.addAdUnits(adUnits);
@@ -629,7 +638,6 @@ function initialize() {
 // If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
     if (streamampConfig.cmp.isEnabled) {
         window.__cmp('getConsentData', null, function (data, success) {
-            console.log(data)
             fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
         });
     } else {
