@@ -38,17 +38,6 @@ pbjs.que = pbjs.que || [];
 
 function initialize() {
 
-// Enable Analytics Module
-    pbjs.que.push(function () {
-        pbjs.enableAnalytics({
-            provider: 'streamamp',
-            options: {
-                publisher_id: streamampConfig.publisher_id,
-                token: streamampConfig.token
-            }
-        });
-    });
-
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
         var filteredAdUnits = streamampConfig.adUnits;
@@ -133,7 +122,7 @@ function initialize() {
                             }
                         };
                         event.source.postMessage(msgIsString ?
-                                                 JSON.stringify(returnMsg) : returnMsg, '*');
+                            JSON.stringify(returnMsg) : returnMsg, '*');
                     });
                 }
             }
@@ -178,128 +167,128 @@ function initialize() {
             style.innerHTML =
                 // Background
                 (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
-                 ? '.qc-cmp-ui' + '{' +
-                     'background-color:' + quantcastTheme.ui.backgroundColor + '!important;' +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui' + '{' +
+                    'background-color:' + quantcastTheme.ui.backgroundColor + '!important;' +
+                    '}'
+                    : '') +
                 // Main Text Color
                 (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.textColor
-                 ? '.qc-cmp-ui,' +
-                     '.qc-cmp-ui .qc-cmp-main-messaging,' +
-                     '.qc-cmp-ui .qc-cmp-messaging,' +
-                     '.qc-cmp-ui .qc-cmp-beta-messaging,' +
-                     '.qc-cmp-ui .qc-cmp-title,' +
-                     '.qc-cmp-ui .qc-cmp-sub-title,' +
-                     '.qc-cmp-ui .qc-cmp-purpose-info,' +
-                     '.qc-cmp-ui .qc-cmp-table,' +
-                     '.qc-cmp-ui .qc-cmp-vendor-list,' +
-                     '.qc-cmp-ui .qc-cmp-vendor-list-title' + '{' +
-                     'color:' + quantcastTheme.ui.textColor + '!important;' +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui,' +
+                    '.qc-cmp-ui .qc-cmp-main-messaging,' +
+                    '.qc-cmp-ui .qc-cmp-messaging,' +
+                    '.qc-cmp-ui .qc-cmp-beta-messaging,' +
+                    '.qc-cmp-ui .qc-cmp-title,' +
+                    '.qc-cmp-ui .qc-cmp-sub-title,' +
+                    '.qc-cmp-ui .qc-cmp-purpose-info,' +
+                    '.qc-cmp-ui .qc-cmp-table,' +
+                    '.qc-cmp-ui .qc-cmp-vendor-list,' +
+                    '.qc-cmp-ui .qc-cmp-vendor-list-title' + '{' +
+                    'color:' + quantcastTheme.ui.textColor + '!important;' +
+                    '}'
+                    : '') +
                 // Links
                 (isNotEmptyCmp(quantcastTheme.link)
-                 ? '.qc-cmp-ui a,' +
-                     '.qc-cmp-ui .qc-cmp-alt-action,' +
-                     '.qc-cmp-ui .qc-cmp-link' + '{' +
-                     (quantcastTheme.link.textColor ? 'color:' + quantcastTheme.link.textColor + '!important;' : '') +
-                     (quantcastTheme.link.isUnderlined ? 'text-decoration: underline' : 'text-decoration: none' + '!important;') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui a,' +
+                    '.qc-cmp-ui .qc-cmp-alt-action,' +
+                    '.qc-cmp-ui .qc-cmp-link' + '{' +
+                    (quantcastTheme.link.textColor ? 'color:' + quantcastTheme.link.textColor + '!important;' : '') +
+                    (quantcastTheme.link.isUnderlined ? 'text-decoration: underline' : 'text-decoration: none' + '!important;') +
+                    '}'
+                    : '') +
                 // Buttons
                 (isNotEmptyCmp(quantcastTheme.primaryButton)
-                 ? '.qc-cmp-ui .qc-cmp-button' + '{' +
-                     (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
-                     (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-button' + '{' +
+                    (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
+                    (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (isNotEmptyCmp(quantcastTheme.primaryButtonHover)
-                 ? '.qc-cmp-ui .qc-cmp-button:hover' + '{' +
-                     (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
-                     (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-button:hover' + '{' +
+                    (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
+                    (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (isNotEmptyCmp(quantcastTheme.secondaryButton)
-                 ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                     (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
-                     (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                    (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
+                    (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (isNotEmptyCmp(quantcastTheme.secondaryButtonHover)
-                 ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button:hover' + '{' +
-                     (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
-                     (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button:hover' + '{' +
+                    (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
+                    (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (quantcastTheme.isSecondaryButtonHidden
-                 ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                     'display: none!important;' +
-                     '}' +
-                     // Without the below the 'Reject all' button will not show on purpose/vendor pages
-                     '.qc-cmp-ui .qc-cmp-horizontal-buttons .qc-cmp-button.qc-cmp-secondary-button,' +
-                     '.qc-cmp-ui .qc-cmp-nav-bar-buttons-container .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                     'display: block!important;' +
-                     '}' +
-                     // Without the below the 'Accept' button will be too big on the main page - mobile view
-                     '@media screen and (max-width: 550px)' + '{' +
-                     '.qc-cmp-buttons.qc-cmp-primary-buttons' + '{' +
-                     'height: 3.8rem!important;' +
-                     '}' +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                    'display: none!important;' +
+                    '}' +
+                    // Without the below the 'Reject all' button will not show on purpose/vendor pages
+                    '.qc-cmp-ui .qc-cmp-horizontal-buttons .qc-cmp-button.qc-cmp-secondary-button,' +
+                    '.qc-cmp-ui .qc-cmp-nav-bar-buttons-container .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                    'display: block!important;' +
+                    '}' +
+                    // Without the below the 'Accept' button will be too big on the main page - mobile view
+                    '@media screen and (max-width: 550px)' + '{' +
+                    '.qc-cmp-buttons.qc-cmp-primary-buttons' + '{' +
+                    'height: 3.8rem!important;' +
+                    '}' +
+                    '}'
+                    : '') +
                 // Tables
                 (isNotEmptyCmp(quantcastTheme.tableHeader)
-                 ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-header,' +
-                     '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
-                     (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-header,' +
+                    '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
+                    (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (isNotEmptyCmp(quantcastTheme.tableRow)
-                 ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-row,' +
-                     '.qc-cmp-ui .qc-cmp-table-row.qc-cmp-vendor-row' + '{' +
-                     (quantcastTheme.tableRow.backgroundColor ? 'background-color:' + quantcastTheme.tableRow.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-row,' +
+                    '.qc-cmp-ui .qc-cmp-table-row.qc-cmp-vendor-row' + '{' +
+                    (quantcastTheme.tableRow.backgroundColor ? 'background-color:' + quantcastTheme.tableRow.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 // Toggles
                 (isNotEmptyCmp(quantcastTheme.toggleOn)
-                 ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
-                     '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-on' + '{' +
-                     (quantcastTheme.toggleOn.backgroundColor ? 'background-color:' + quantcastTheme.toggleOn.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.toggleOn.borderColor ? 'border-color:' + quantcastTheme.toggleOn.borderColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
+                    '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-on' + '{' +
+                    (quantcastTheme.toggleOn.backgroundColor ? 'background-color:' + quantcastTheme.toggleOn.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.toggleOn.borderColor ? 'border-color:' + quantcastTheme.toggleOn.borderColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (isNotEmptyCmp(quantcastTheme.toggleOff)
-                 ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-off,' +
-                     '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-off' + '{' +
-                     (quantcastTheme.toggleOff.backgroundColor ? 'background-color:' + quantcastTheme.toggleOff.backgroundColor + '!important;' : '') +
-                     (quantcastTheme.toggleOff.borderColor ? 'border-color:' + quantcastTheme.toggleOff.borderColor + '!important;' : '') +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-off,' +
+                    '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-off' + '{' +
+                    (quantcastTheme.toggleOff.backgroundColor ? 'background-color:' + quantcastTheme.toggleOff.backgroundColor + '!important;' : '') +
+                    (quantcastTheme.toggleOff.borderColor ? 'border-color:' + quantcastTheme.toggleOff.borderColor + '!important;' : '') +
+                    '}'
+                    : '') +
                 (quantcastTheme.toggleSwitchBorderColor
-                 ? '.qc-cmp-ui .qc-cmp-toggle-switch' + '{' +
-                     'border: 1px solid ' + quantcastTheme.toggleSwitchBorderColor + '!important;' +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-toggle-switch' + '{' +
+                    'border: 1px solid ' + quantcastTheme.toggleSwitchBorderColor + '!important;' +
+                    '}'
+                    : '') +
                 (quantcastTheme.toggleStatusTextColor
-                 ? '.qc-cmp-ui .qc-cmp-toggle-status' + '{' +
-                     'color:' + quantcastTheme.toggleStatusTextColor + '!important;' +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-toggle-status' + '{' +
+                    'color:' + quantcastTheme.toggleStatusTextColor + '!important;' +
+                    '}'
+                    : '') +
                 (quantcastTheme.dropdownArrowColor
-                 ? '.qc-cmp-ui .qc-cmp-arrow-down' + '{' +
-                     'background:' +
-                     'url("data:image/svg+xml;charset=utf-8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'%23' +
-                     quantcastTheme.dropdownArrowColor.replace('#', '') +
-                     '\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M2 5l6 6 6-6\'/></svg>") 50% no-repeat' +
-                     '!important;' +
-                     '}'
-                 : '') +
+                    ? '.qc-cmp-ui .qc-cmp-arrow-down' + '{' +
+                    'background:' +
+                    'url("data:image/svg+xml;charset=utf-8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'%23' +
+                    quantcastTheme.dropdownArrowColor.replace('#', '') +
+                    '\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M2 5l6 6 6-6\'/></svg>") 50% no-repeat' +
+                    '!important;' +
+                    '}'
+                    : '') +
                 '}';
 
             ref.parentNode.insertBefore(style, ref);
@@ -378,6 +367,35 @@ function initialize() {
 
 // Define PBJS Ad Slots
     var adUnits = streamampConfig.adUnits;
+
+    // Enable Analytics Module and define aliased bidders
+    pbjs.que.push(function () {
+        pbjs.enableAnalytics({
+            provider: 'streamamp',
+            options: {
+                publisher_id: streamampConfig.publisher_id,
+                token: streamampConfig.token
+            }
+        });
+
+        // Define aliased adapters
+        let alias = []
+        adUnits.forEach(function(adUnit) {
+            adUnit.bids.forEach(function(bid) {
+                if (bid.bidder === 'streamamp' || bid.bidder === 'totaljobs') {
+                    if (!alias.includes(bid.bidder)) {
+                        alias.push(bid.bidder)
+                    }
+                }
+            })
+        })
+
+        if (alias.length !== 0) {
+            alias.forEach(function(name) {
+                pbjs.aliasBidder('appnexus', name)
+            })
+        }
+    });
 
 // Fetch header bids
     function fetchHeaderBids() {
@@ -465,15 +483,6 @@ function initialize() {
                     headerBidderBack('a9');
                 });
             }
-
-            // Define aliased adapters
-            adUnits.forEach(function (adUnit) {
-                adUnit.bids.forEach(function (bid) {
-                    if (bid.bidder === 'streamamp' || bid.bidder === 'totaljobs') {
-                        pbjs.aliasBidder('appnexus', bid.bidder)
-                    }
-                })
-            })
 
             // Request bids from prebid
             pbjs.que.push(function () {
