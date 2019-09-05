@@ -4,7 +4,7 @@ var publisher = window.location.host.match('www') ? window.location.host.split('
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
 streamampConfig.async = true;
-streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs/${publisher}.min.js`;
+streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs@master/${publisher}.min.js`;
 streamampConfig.onload = initialize
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(streamampConfig, node);
@@ -48,11 +48,11 @@ function initialize() {
             }
         });
     });
-    
+
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
         var filteredAdUnits = streamampConfig.adUnits;
-    
+
         if(window.AD_UNITS_TOGGLE_ON) {
             filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
                 // Only keep ad units that ARE in the TOGGLE_ON array
@@ -64,16 +64,16 @@ function initialize() {
                 return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnit.code) === -1;
             })
         }
-        
+
         return filteredAdUnits;
     };
-    
+
 // Check if toggle on/off is in use and filter streamampConfig adUnits
     if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
         // Update streamampConfig adUnits to use the filteredAdUnits
         streamampConfig.adUnits = filterToggleOnOff();
     };
-    
+
 // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
         initializeCmp()
