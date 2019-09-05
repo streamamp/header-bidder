@@ -638,7 +638,6 @@ function initialize() {
 // If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
     if (streamampConfig.cmp.isEnabled) {
         window.__cmp('getConsentData', null, function (data, success) {
-            console.log(data)
             fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
         });
     } else {
