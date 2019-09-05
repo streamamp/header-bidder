@@ -38,6 +38,42 @@ pbjs.que = pbjs.que || [];
 
 function initialize() {
 
+// Enable Analytics Module
+    pbjs.que.push(function () {
+        pbjs.enableAnalytics({
+            provider: 'streamamp',
+            options: {
+                publisher_id: streamampConfig.publisher_id,
+                token: streamampConfig.token
+            }
+        });
+    });
+    
+// Function to filter ad units using toggle on/off arrays
+    function filterToggleOnOff() {
+        var filteredAdUnits = streamampConfig.adUnits;
+    
+        if(window.AD_UNITS_TOGGLE_ON) {
+            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
+                // Only keep ad units that ARE in the TOGGLE_ON array
+                return window.AD_UNITS_TOGGLE_ON.indexOf(adUnit.code) !== -1;
+            })
+        } else {
+            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
+                // Keep all ad units that are NOT in the TOGGLE_OFF array
+                return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnit.code) === -1;
+            })
+        }
+        
+        return filteredAdUnits;
+    };
+    
+// Check if toggle on/off is in use and filter streamampConfig adUnits
+    if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
+        // Update streamampConfig adUnits to use the filteredAdUnits
+        streamampConfig.adUnits = filterToggleOnOff();
+    };
+    
 // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
         initializeCmp()
@@ -310,6 +346,8 @@ function initialize() {
             return streamampConfig.adUnits.map(function (adUnit) {
                 var gptSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
                     .defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes))
+                    // // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
+                    .setForceSafeFrame(adUnit.safeFrame || false)
                     .addService(googletag.pubads())
                 gptSlots.push(gptSlot)
                 gptSlotsCodes.push(adUnit.code)
@@ -327,7 +365,7 @@ function initialize() {
     });
 
 // Set universal timeout
-    var bidTimeout = streamampConfig.bidTimeout || 2000;
+    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
 
 // Define apstag slots
     var apstagSlots = streamampConfig.adUnits.map(function (adUnit) {
