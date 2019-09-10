@@ -1,4 +1,4 @@
-// StreamAMP Header Bidder v0.1
+// StreamAMP Header Bidder v1
 var publisher = window.location.host.match('www') ? window.location.host.split('.')[1] : window.location.host.split('.')[0]
 
 var streamampConfig = document.createElement('script');
@@ -555,71 +555,77 @@ function initialize() {
         }, bidTimeout);
     }
 
-// function stickyAd(adUnits) {
-//   var stickyAdUnits = adUnits.filter(function(adUnit) { return adUnit.isSticky === true; });
-//
-//   if (stickyAdUnits.length === 0) {
-//     return;
-//   }
-//
-//     pubAds.addEventListener('slotRenderEnded', function(e) {
-//       if (!e.isEmpty) {
-//         stickyAdUnits
-//             .filter(function(adUnit) { return adUnit.code === e.slot.getSlotElementId(); })
-//             .map(function(adUnit) { applyStyle(adUnit); });
-//       }
-//     });
-//   }
-//
-//   function applyStyle(adUnit) {
-//     var adUnitCode = adUnit.code;
-//     var stickyAdPosition = adUnit.stickyAdPosition;
-//
-//     var adContainer = document.getElementById(adUnitCode);
-//
-//     if (adContainer) {
-//       adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
-//       adContainer.style.position = 'fixed';
-//       adContainer.style.bottom = '0px';
-//       adContainer.style.padding = '4px 0 0 0';
-//       adContainer.style.zIndex = '9999';
-//       adContainer.style.width = '100%';
-//       adContainer.style.textAlign = 'center';
-//
-//       if (stickyAdPosition == 'bl') { // bottom left
-//         adContainer.style.left = '0px';
-//       } else if (stickyAdPosition == 'br') { // bottom right
-//         adContainer.style.right = '0px';
-//       } else { // default to be bottom center
-//         adContainer.style.transform = 'translate(-50%, 0%)';
-//         adContainer.style.left = '50%';
-//       }
-//
-//       adContainer.style.display = '';
-//
-//       var closeAdButton = document.createElement('img');
-//       closeAdButton.id = "close-button";
-//       closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
-//       closeAdButton.style.position = "absolute";
-//       closeAdButton.style.top = "-12px";
-//       closeAdButton.style.right = "3px";
-//       closeAdButton.style.maxWidth = "24px";
-//       closeAdButton.style.maxHeight = "24px";
-//
-//       // add button event
-//       closeAdButton.onclick = function() {
-//         adContainer.style.display = 'none';
-//       };
-//       adContainer.appendChild(closeAdButton);
-//
-//       var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
-//
-//       if(frame && frame.contentWindow.Tynt.length) {
-//         document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
-//         document.getElementById("close-button").style.display = "none";
-//       }
-//     }
-//   }
+    // Sticky Ad
+
+function stickyAd(adUnits) {
+  var stickyAdUnits = adUnits.filter(function(adUnit) { return adUnit.isSticky === true; });
+
+  if (stickyAdUnits.length === 0) {
+    return;
+  }
+
+  googletag.cmd.push(function () {
+      googletag.pubads().addEventListener('slotRenderEnded', function(e) {
+          if (!e.isEmpty) {
+              stickyAdUnits
+                  .filter(function(adUnit) { return adUnit.code === e.slot.getSlotElementId(); })
+                  .map(function(adUnit) { applyStyle(adUnit); });
+          }
+      });
+  });
+  }
+
+  function applyStyle(adUnit) {
+    var adUnitCode = adUnit.code;
+    var stickyAdPosition = adUnit.stickyAdPosition;
+
+    var adContainer = document.getElementById(adUnitCode);
+
+    if (adContainer) {
+      adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
+      adContainer.style.position = 'fixed';
+      adContainer.style.bottom = '0px';
+      adContainer.style.padding = '4px 0 0 0';
+      adContainer.style.zIndex = '9999';
+      adContainer.style.width = '100%';
+      adContainer.style.textAlign = 'center';
+
+      if (stickyAdPosition == 'bl') { // bottom left
+        adContainer.style.left = '0px';
+      } else if (stickyAdPosition == 'br') { // bottom right
+        adContainer.style.right = '0px';
+      } else { // default to be bottom center
+        adContainer.style.transform = 'translate(-50%, 0%)';
+        adContainer.style.left = '50%';
+      }
+
+      adContainer.style.display = '';
+
+      var closeAdButton = document.createElement('img');
+      closeAdButton.id = "close-button";
+      closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
+      closeAdButton.style.position = "absolute";
+      closeAdButton.style.top = "-12px";
+      closeAdButton.style.right = "3px";
+      closeAdButton.style.maxWidth = "24px";
+      closeAdButton.style.maxHeight = "24px";
+
+      // add button event
+      closeAdButton.onclick = function() {
+        adContainer.style.display = 'none';
+      };
+      adContainer.appendChild(closeAdButton);
+
+      var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
+
+      if(frame && frame.contentWindow.Tynt.length) {
+        document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
+        document.getElementById("close-button").style.display = "none";
+      }
+    }
+  }
+
+  stickyAd (adUnits);
 
     function refreshBids() {
         if (streamampConfig.a9Enabled) {
@@ -651,11 +657,6 @@ function initialize() {
         });
     } else {
         fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
-    }
-
-// Sticky Ads
-    if (streamampConfig.adUnits.isSticky) {
-        stickyAd(adUnits)
     }
 
 // Refresh bids handler
