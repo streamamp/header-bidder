@@ -70,7 +70,7 @@ function initialize() {
 
 // Checks if an object is NOT empty - for CMP styles
     function isNotEmptyCmp(obj) {
-        return Object.getOwnPropertyNames(obj).length > 0;
+        return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
     };
 
 // Function to initialize CMP
@@ -242,7 +242,7 @@ function initialize() {
                     : '') +
                 // Tables
                 (isNotEmptyCmp(quantcastTheme.tableHeader)
-                    ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-header,' +
+                    ? '.qc-cmp-ui .qc-cmp-table-header,' +
                     '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
                     (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
                     (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
@@ -255,6 +255,14 @@ function initialize() {
                     (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
                     '}'
                     : '') +
+                // Table content inherit color
+                    '.qc-cmp-ui .qc-cmp-purpose-description,' +
+                    '.qc-cmp-ui .qc-cmp-company-cell,' +
+                    '.qc-cmp-ui .qc-cmp-vendor-info-content,' +
+                    '.qc-cmp-ui .qc-cmp-vendor-policy,' +
+                    '.qc-cmp-ui .qc-cmp-vendor-info-list' + '{' +
+                    'color: inherit!important;' +
+                    '}' +
                 // Toggles
                 (isNotEmptyCmp(quantcastTheme.toggleOn)
                     ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
