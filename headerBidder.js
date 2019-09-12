@@ -301,8 +301,7 @@ function initialize() {
                     '!important;' +
                     '}'
                     : '') +
-                (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '')
-                +
+                (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '') +
                 '}';
 
             ref.parentNode.insertBefore(style, ref);
