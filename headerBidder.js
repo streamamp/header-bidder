@@ -158,7 +158,7 @@ function initialize() {
         window.__cmp('init', streamampConfig.cmp.config);
 
         // Apply custom CMP styles if true
-        if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.style)) {
+        if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
             var style = document.createElement('style');
             var ref = document.querySelector('script');
 
