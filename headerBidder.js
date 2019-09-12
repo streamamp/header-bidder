@@ -201,6 +201,7 @@ function initialize() {
                     (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
                     (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
                     (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
+                    'background-image: none!important;' +
                     '}'
                     : '') +
                 (isNotEmptyCmp(quantcastTheme.primaryButtonHover)
@@ -208,6 +209,7 @@ function initialize() {
                     (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
                     (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
                     (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
+                    'background-image: none!important;' +
                     '}'
                     : '') +
                 (isNotEmptyCmp(quantcastTheme.secondaryButton)
@@ -215,6 +217,7 @@ function initialize() {
                     (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
                     (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
                     (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
+                    'background-image: none!important;' +
                     '}'
                     : '') +
                 (isNotEmptyCmp(quantcastTheme.secondaryButtonHover)
@@ -222,6 +225,7 @@ function initialize() {
                     (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
                     (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
                     (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
+                    'background-image: none!important;' +
                     '}'
                     : '') +
                 (quantcastTheme.isSecondaryButtonHidden
