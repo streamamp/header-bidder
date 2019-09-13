@@ -346,9 +346,10 @@ function initialize() {
 
         function gptSizeMappingDefineSlots() {
             return streamampConfig.adUnits.map(function (adUnit) {
-                var gptSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
-                    .defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes))
-                    // // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
+                var defineSlot = adUnit.outOfPage
+                                 ? googletag.defineOutOfPageSlot(adUnit.path, adUnit.code)
+                                 : googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code).defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes))
+                var gptSlot = defineSlot  // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
                     .setForceSafeFrame(adUnit.safeFrame || false)
                     .addService(googletag.pubads())
                 gptSlots.push(gptSlot)
