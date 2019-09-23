@@ -662,7 +662,7 @@ function stickyAd(adUnits) {
 
       var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
 
-      if(frame && frame.contentWindow.Tynt.length) {
+      if(frame && frame.contentWindow.length) {
         document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
         document.getElementById("close-button").style.display = "none";
       }
