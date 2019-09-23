@@ -323,7 +323,7 @@ function initialize() {
 
 // Initialize apstag
     apstag.init({
-        pubID: '16268e26-dabe-4bf4-a28f-b8f4ee192ed3',
+        pubID: streamampConfig.apsPubID,
         adServer: 'googletag'
     });
 
