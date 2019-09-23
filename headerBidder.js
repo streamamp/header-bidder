@@ -500,6 +500,37 @@ function initialize() {
             // Request bids from prebid
             pbjs.que.push(function () {
                 pbjs.addAdUnits(adUnits);
+                // Currency Conversion - uses custom currency module
+                var currencyValue = streamampConfig.currency.value;
+                var currencyEnabled = streamampConfig.currency.enabled;
+                var currencyFileURL = 'https://static.amp.services/currency/conversion-rates.json';
+                if (currencyEnabled === true && currencyValue.length !== 0) {
+                    if (currencyValue === 'JPY') {
+                        pbjs.setConfig({
+                            currency: {
+                                adServerCurrency: currencyValue,
+                                conversionRateFile: currencyFileURL,
+                                granularityMultiplier: 100
+                            }
+                        });
+                    } else {
+                        pbjs.setConfig({
+                            currency: {
+                                adServerCurrency: currencyValue,
+                                conversionRateFile: currencyFileURL,
+                                granularityMultiplier: 1
+                            }
+                        });
+                    }
+                } else {
+                    pbjs.setConfig({
+                        currency: {
+                            adServerCurrency: 'USD',
+                            conversionRateFile: currencyFileURL,
+                            granularityMultiplier: 1
+                        }
+                    });
+                }
                 // Set PBJ config
                 pbjs.setConfig({
                     priceGranularity: streamampConfig.pbjsPriceGranularity,
