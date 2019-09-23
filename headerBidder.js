@@ -1,5 +1,17 @@
 // StreamAMP Header Bidder v1
-var publisher = window.location.host.match('www') ? window.location.host.split('.')[1] : window.location.host.split('.')[0]
+// Function to split host name
+function splitHostname() {
+    var result = {};
+    var regexParse = new RegExp('([a-z\-0-9]{2,63})\.([a-z\.]{2,5})$');
+    var urlParts = regexParse.exec(window.location.hostname);
+    result.domain = urlParts[1];
+    result.type = urlParts[2];
+    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);;
+    return result;
+}
+
+// Set publisher to the domain from SplitHostname()
+var publisher = splitHostname().domain
 
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
