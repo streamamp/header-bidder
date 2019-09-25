@@ -682,11 +682,11 @@ function stickyAd(adUnits) {
   }
 
   stickyAd (adUnits);
-
+// Refresh bids handler
     function refreshBids(apstagSlots, adUnits) {
         var biddersBack = 0;
         var adServerCalled = false;
-
+// Make a9 ad call if enabled
         if (streamampConfig.a9Enabled) {
             apstag.fetchBids({
                 slots: apstagSlots,
@@ -697,7 +697,7 @@ function stickyAd(adUnits) {
                 bothBiddersBack();
             });
         }
-
+// Prebid ad call
         pbjs.que.push(function() {
             pbjs.addAdUnits(adUnits);
             pbjs.requestBids({
@@ -710,21 +710,20 @@ function stickyAd(adUnits) {
                 },
             });
         });
-
+// Send ad server request
         function sendAdRequest() {
             if (adServerCalled) return;
             adServerCalled = true;
             window.googletag.pubads().refresh();
         }
-
-
+// Check if both bidders are back
         function bothBiddersBack() {
             if (biddersBack !== 2) return;
             sendAdRequest();
         }
-
+// Self executing timeout for ad server request
         (function() {
-            setTimeout(function() {
+            window.setTimeout(function() {
                 adServerCalled = true;
                 sendAdRequest();
             }, 2000)
