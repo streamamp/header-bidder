@@ -6,12 +6,12 @@ function splitHostname() {
     var urlParts = regexParse.exec(window.location.hostname);
     result.domain = urlParts[1];
     result.type = urlParts[2];
-    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);;
+    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);
     return result;
 }
 
-// Set publisher to the domain from SplitHostname()
-var publisher = splitHostname().domain
+// Set publisher to the domain from splitHostname()
+var publisher = splitHostname().domain;
 
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
@@ -26,7 +26,7 @@ var gptLib = document.createElement('script');
 gptLib.type = 'text/javascript';
 gptLib.async = true;
 gptLib.src = 'https://www.googletagservices.com/tag/js/gpt.js';
-var node = document.getElementsByTagName('script')[0];
+// var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(gptLib, node);
 
 // Load PBJS library
@@ -34,7 +34,7 @@ var prebid = document.createElement('script');
 prebid.type = 'text/javascript';
 prebid.async = true;
 prebid.src = '//static.amp.services/prebid2.28.0.js';
-var node = document.getElementsByTagName('script')[0];
+// var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(prebid, node);
 
 // Load apstag library
@@ -683,27 +683,52 @@ function stickyAd(adUnits) {
 
   stickyAd (adUnits);
 
-    function refreshBids() {
+    function refreshBids(apstagSlots, adUnits) {
+        var biddersBack = 0;
+        var adServerCalled = false;
+
         if (streamampConfig.a9Enabled) {
             apstag.fetchBids({
                 slots: apstagSlots,
                 timeout: bidTimeout
-            }, function (bids) {
+            }, function(bids) {
+                apstag.setDisplayBids();
+                biddersBack++;
+                bothBiddersBack();
             });
         }
-        pbjs.que.push(function () {
+
+        pbjs.que.push(function() {
+            pbjs.addAdUnits(adUnits);
             pbjs.requestBids({
                 timeout: bidTimeout,
-                adUnitCodes: gptSlotsCodes,
-                bidsBackHandler: function () {
+                adUnitCodes: adsToRefresh,
+                bidsBackHandler: function() {
+                    pbjs.setTargetingForGPTAsync(adsToRefresh);
+                    biddersBack++;
+                    bothBiddersBack();
                 },
             });
-            if (streamampConfig.a9Enabled) {
-                apstag.setDisplayBids();
-            }
-            pbjs.setTargetingForGPTAsync(gptSlotsCodes);
-            googletag.pubads().refresh(gptSlots);
         });
+
+        function sendAdRequest() {
+            if (adServerCalled) return;
+            adServerCalled = true;
+            window.googletag.pubads().refresh();
+        }
+
+
+        function bothBiddersBack() {
+            if (biddersBack !== 2) return;
+            sendAdRequest();
+        }
+
+        (function() {
+            setTimeout(function() {
+                adServerCalled = true;
+                sendAdRequest();
+            }, 2000)
+        })
     }
 
 // If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
@@ -737,5 +762,4 @@ function stickyAd(adUnits) {
         window.clearInterval(window.adRefreshTimer);
         window.adRefreshTimer = null;
     };
-
-};
+}
