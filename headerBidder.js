@@ -15,7 +15,6 @@ var publisher
 // Set publisher to the domain from SplitHostname()
 if (splitHostname().domain === 'road'){
     publisher = splitHostname().subdomain + splitHostname().domain
-    console.log(publisher)
 } else {
     publisher = splitHostname().domain
 }
