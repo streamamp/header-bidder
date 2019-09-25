@@ -10,8 +10,14 @@ function splitHostname() {
     return result;
 }
 
+var publisher
+
 // Set publisher to the domain from SplitHostname()
-var publisher = splitHostname().domain
+if (splitHostname().domain === 'road'){
+    publisher = splitHostname().subdomain + splitHostname().domain
+} else {
+    publisher = splitHostname().domain
+}
 
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
@@ -332,35 +338,48 @@ function initialize() {
 // Set empty arrays for GPT units and codes
     var gptSlots = [];
     var gptSlotsCodes = [];
-
-    googletag.cmd.push(function () {
+    
+    googletag.cmd.push(function() {
         function singleBreakpointSizeMapping(minWidth, sizesSuppport) {
             return googletag.sizeMapping().addSize([minWidth, 0], sizesSuppport).build()
         }
-
-        function allBreakpointsSizeMapping(adunit) {
-            return streamampConfig.breakpoints.map(function (breakpoint, index) {
-                return singleBreakpointSizeMapping(breakpoint.minWidth, compareAdUnitBreakpointSizes(adunit, breakpoint.sizesSupported))[0]
+        
+        function allBreakpointsSizeMapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
+            return streamampConfig.breakpoints.map(function(breakpoint, index) {
+                var adUnitbreakpointsbreakpointlabel = adUnitbreakpoints[breakpoint.label] ? adUnitbreakpoints[breakpoint.label] : []
+                return singleBreakpointSizeMapping(breakpoint.minWidth, compareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))[0]
             })
         }
-
-        function compareAdUnitBreakpointSizes(adUnitSizes, breakpoints) {
+        
+        function compareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUnitmediaTypesbannersizes) {
             var matchingSizes = []
-            breakpoints.forEach(function (breakpoint) {
-                adUnitSizes.forEach(function (adUnitSize) {
-                    if (JSON.stringify(breakpoint) === JSON.stringify(adUnitSize)) {
-                        matchingSizes.push(breakpoint)
+            var googleSize = [[320, 100], [970, 90], [468, 60], [120, 600]]
+            breakpoints.forEach(function(breakpoint) {
+                if (adUnitbreakpointsSizes) {
+                    adUnitbreakpointsSizes.forEach(function(adUnitbreakpointsSize) {
+                        if (JSON.stringify(breakpoint) === JSON.stringify(adUnitbreakpointsSize)) {
+                            matchingSizes.push(adUnitbreakpointsSize)
+                        }
+                    })
+                }
+            });
+            googleSize.forEach(function(size) {
+                adUnitbreakpointsSizes.forEach(function(adUnitbreakpointsSize) {
+                    if (JSON.stringify(size) === JSON.stringify(adUnitbreakpointsSize)) {
+                        matchingSizes.push(adUnitbreakpointsSize)
                     }
                 })
-            });
+            })
             return matchingSizes
         }
-
+        
         function gptSizeMappingDefineSlots() {
-            return streamampConfig.adUnits.map(function (adUnit) {
-                var gptSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
-                    .defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes))
-                    // // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
+            return streamampConfig.adUnits.map(function(adUnit) {
+                var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {}
+                var defineSlot = adUnit.outOfPage 
+                                 ? googletag.defineOutOfPageSlot(adUnit.path, adUnit.code) 
+                                 : googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code).defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints))
+                var gptSlot = defineSlot // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
                     .setForceSafeFrame(adUnit.safeFrame || false)
                     .addService(googletag.pubads())
                 gptSlots.push(gptSlot)
@@ -368,9 +387,9 @@ function initialize() {
                 return gptSlot
             })
         }
-
+        
         gptSizeMappingDefineSlots();
-
+        
         googletag.pubads().disableInitialLoad();
         googletag.pubads().collapseEmptyDivs(streamampConfig.hasCollapsedEmptyDivs);
         googletag.pubads().enableSingleRequest();
