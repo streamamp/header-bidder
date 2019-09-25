@@ -687,6 +687,7 @@ function stickyAd(adUnits) {
     function refreshBids(apstagSlots, adUnits) {
         var biddersBack = 0;
         var adServerCalled = false;
+        var adsToRefresh = streamampConfig.adsToRefresh;
 // Make a9 ad call if enabled
         if (streamampConfig.a9Enabled) {
             apstag.fetchBids({
@@ -715,7 +716,7 @@ function stickyAd(adUnits) {
         function sendAdRequest() {
             if (adServerCalled) return;
             adServerCalled = true;
-            window.googletag.pubads().refresh();
+            googletag.pubads().refresh();
         }
 // Check if both bidders are back
         function bothBiddersBack() {
@@ -748,7 +749,7 @@ function stickyAd(adUnits) {
             window.clearInterval(window.adRefreshTimer);
         }
         window.adRefreshTimer = setInterval(function () {
-            if (streamampConfig.hasRefreshBids) {
+            if (streamampConfig.adsToRefresh.length !== 0) {
                 refreshBids();
             }
         }, streamampConfig.refreshBidsTimeout * 1e3);
