@@ -10,8 +10,15 @@ function splitHostname() {
     return result;
 }
 
+var publisher
+
 // Set publisher to the domain from SplitHostname()
-var publisher = splitHostname().domain
+if (splitHostname().domain === 'road'){
+    publisher = splitHostname().subdomain + splitHostname().domain
+    console.log(publisher)
+} else {
+    publisher = splitHostname().domain
+}
 
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
