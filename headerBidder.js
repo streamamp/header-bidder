@@ -682,6 +682,7 @@ function stickyAd(adUnits) {
   }
 
   stickyAd (adUnits);
+    // TODO: Update gptAdSlots variable to adsToRefresh - Must include option in SW2 to populate this array
 // Refresh bids handler
     function refreshBids(apstagSlots, adUnits) {
         var biddersBack = 0;
