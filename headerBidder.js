@@ -31,7 +31,7 @@ node.parentNode.insertBefore(streamampConfig, node);
 var gptLib = document.createElement('script');
 gptLib.type = 'text/javascript';
 gptLib.async = true;
-gptLib.src = 'https://www.googletagservices.com/tag/js/gpt.js';
+gptLib.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(gptLib, node);
 
