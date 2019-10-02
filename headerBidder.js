@@ -22,7 +22,7 @@ if (splitHostname().domain === 'road'){
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
 streamampConfig.async = true;
-streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs@1/${publisher}.min.js`;
+streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/${publisher}.min.js`;
 streamampConfig.onload = initialize
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(streamampConfig, node);
