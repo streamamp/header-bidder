@@ -22,7 +22,7 @@ if (splitHostname().domain === 'road'){
 var streamampConfig = document.createElement('script');
 streamampConfig.type = 'text/javascript';
 streamampConfig.async = true;
-streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs@1/${publisher}.min.js`;
+streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/${publisher}.min.js`;
 streamampConfig.onload = initialize
 var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(streamampConfig, node);
@@ -55,6 +55,16 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 function initialize() {
+    
+    // popuplates streamampConfig global key values
+    var levels = window.location.pathname.split('/').filter(function(level) { return level !== '';});
+    for(var levelIndex = 1; levelIndex < 6; levelIndex++) {
+        window.streamampConfig.globalKeyValues.push({
+            name: 'Level' + levelIndex,
+            value: levels[levelIndex - 1] || 'none',
+            keyValueType: 'static'
+        });
+    };
 
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
@@ -90,6 +100,43 @@ function initialize() {
     function isNotEmptyCmp(obj) {
         return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
     };
+    
+    function addClientTargeting() {
+        var key;
+        var keyValue;
+        var i;
+        var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
+       
+        
+        if (clientConfig && clientConfig.targets) {
+            for (key in clientConfig.targets) {
+                if (clientConfig.targets.hasOwnProperty(key)) {
+                    keyValue = {
+                        name: key,
+                        value: clientConfig.targets[key],
+                        keyValueType: 'static'
+                    };
+                    
+                    keyValue = normalizeKeyValue(keyValue);
+                    
+                    googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+                }
+            }
+        }
+        
+        if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
+           
+            for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
+                keyValue = streamampConfig.globalKeyValues[i];
+                keyValue = normalizeKeyValue(keyValue);
+                if (keyValue.value !== undefined) {
+                    googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+                } else {
+                    googletag.pubads().setTargeting(keyValue.name, []);
+                }
+            }
+        }
+    }
 
 // Function to initialize CMP
     function initializeCmp() {
@@ -387,13 +434,14 @@ function initialize() {
                 return gptSlot
             })
         }
+    
+        addClientTargeting();
 
         gptSizeMappingDefineSlots();
 
         googletag.pubads().disableInitialLoad();
         googletag.pubads().collapseEmptyDivs(streamampConfig.hasCollapsedEmptyDivs);
         googletag.pubads().enableSingleRequest();
-        googletag.pubads().setTargeting('scriptTesting', 'a9');
         googletag.enableServices();
     });
 
@@ -512,6 +560,7 @@ function initialize() {
                 }
 
                 pbjs.setTargetingForGPTAsync();
+                addClientTargeting();
                 googletag.pubads().refresh();
             });
         }
@@ -617,6 +666,7 @@ function initialize() {
                 pbjs.requestBids({
                     bidsBackHandler: function (bidResponses) {
                         headerBidderBack('prebid');
+                        addClientTargeting();
                     }
                 });
             });
@@ -715,6 +765,7 @@ function stickyAd(adUnits) {
                 timeout: bidTimeout,
                 adUnitCodes: gptSlotsCodes,
                 bidsBackHandler: function () {
+                    addClientTargeting();
                 },
             });
             if (streamampConfig.a9Enabled) {
@@ -757,4 +808,17 @@ function stickyAd(adUnits) {
         window.adRefreshTimer = null;
     };
 
+};
+
+function normalizeKeyValue(keyValue){
+    if (keyValue && keyValue.keyValueType === 'variable')
+    {
+        keyValue.value = window[keyValue.value];
+        if (keyValue.value === '')
+        {
+            keyValue.value = undefined;
+        }
+    }
+    
+    return keyValue;
 };
