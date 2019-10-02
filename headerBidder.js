@@ -113,7 +113,6 @@ function initialize() {
         
         if (clientConfig && clientConfig.targets) {
             console.log('clientConfig', clientConfig.targets)
-            utils.log('Streamamp DEBUG:', 'Setting up custom targeting key-value:', clientConfig.targets);
             for (key in clientConfig.targets) {
                 console.log('key', key)
                 if (clientConfig.targets.hasOwnProperty(key)) {
@@ -821,4 +820,17 @@ function stickyAd(adUnits) {
         window.adRefreshTimer = null;
     };
 
+};
+
+function normalizeKeyValue(keyValue){
+    if (keyValue && keyValue.keyValueType === 'variable')
+    {
+        keyValue.value = window[keyValue.value];
+        if (keyValue.value === '')
+        {
+            keyValue.value = undefined;
+        }
+    }
+    
+    return keyValue;
 };
