@@ -64,7 +64,6 @@ function initialize() {
             value: levels[levelIndex - 1] || 'none',
             keyValueType: 'static'
         });
-        console.log('window.ampConfig.globalKeyValues',window.streamampConfig.globalKeyValues)
     };
 
 // Function to filter ad units using toggle on/off arrays
@@ -103,29 +102,22 @@ function initialize() {
     };
     
     function addClientTargeting() {
-        console.log('function running?')
         var key;
         var keyValue;
         var i;
         var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
-        
-        console.log('client config', clientConfig)
+       
         
         if (clientConfig && clientConfig.targets) {
-            console.log('clientConfig', clientConfig.targets)
             for (key in clientConfig.targets) {
-                console.log('key', key)
                 if (clientConfig.targets.hasOwnProperty(key)) {
                     keyValue = {
                         name: key,
                         value: clientConfig.targets[key],
                         keyValueType: 'static'
                     };
-                    console.log('key value', keyValue)
                     
                     keyValue = normalizeKeyValue(keyValue);
-                    
-                    console.log('key value normalizeKeyValue', keyValue)
                     
                     googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
                 }
@@ -133,15 +125,11 @@ function initialize() {
         }
         
         if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
-            
-            console.log('config global value',  streamampConfig.globalKeyValues)
+           
             for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
                 keyValue = streamampConfig.globalKeyValues[i];
-                console.log('global key value', keyValue)
                 keyValue = normalizeKeyValue(keyValue);
-                console.log('global key value normalizeKeyValue', keyValue)
                 if (keyValue.value !== undefined) {
-                    console.log('gpt', googletag.pubads().setTargeting(keyValue.name, [keyValue.value]))
                     googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
                 } else {
                     googletag.pubads().setTargeting(keyValue.name, []);
