@@ -55,6 +55,17 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 function initialize() {
+    
+    // popuplates streamampConfig global key values
+    var levels = window.location.pathname.split('/').filter(function(level) { return level !== '';});
+    for(var levelIndex = 1; levelIndex < 6; levelIndex++) {
+        window.streamampConfig.globalKeyValues.push({
+            name: 'Level' + levelIndex,
+            value: levels[levelIndex - 1] || 'none',
+            type: 'static'
+        });
+        console.log('window.ampConfig.globalKeyValues',window.streamampConfig.globalKeyValues)
+    };
 
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
@@ -90,6 +101,55 @@ function initialize() {
     function isNotEmptyCmp(obj) {
         return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
     };
+    
+    function addClientTargeting() {
+        console.log('function running?')
+        var key;
+        var keyValue;
+        var i;
+        var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
+        
+        console.log('client config', clientConfig)
+        
+        if (clientConfig && clientConfig.targets) {
+            console.log('clientConfig', clientConfig.targets)
+            utils.log('Streamamp DEBUG:', 'Setting up custom targeting key-value:', clientConfig.targets);
+            for (key in clientConfig.targets) {
+                console.log('key', key)
+                if (clientConfig.targets.hasOwnProperty(key)) {
+                    keyValue = {
+                        name: key,
+                        value: clientConfig.targets[key],
+                        keyValueType: 'static'
+                    };
+                    console.log('key value', keyValue)
+                    
+                    keyValue = normalizeKeyValue(keyValue);
+                    
+                    console.log('key value normalizeKeyValue', keyValue)
+                    
+                    googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+                }
+            }
+        }
+        
+        if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
+            
+            console.log('config global value',  streamampConfig.globalKeyValues)
+            for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
+                keyValue = streamampConfig.globalKeyValues[i];
+                console.log('global key value', keyValue)
+                keyValue = normalizeKeyValue(keyValue);
+                console.log('global key value normalizeKeyValue', keyValue)
+                if (keyValue.value !== undefined) {
+                    console.log('gpt', googletag.pubads().setTargeting(keyValue.name, [keyValue.value]))
+                    googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+                } else {
+                    googletag.pubads().setTargeting(keyValue.name, []);
+                }
+            }
+        }
+    }
 
 // Function to initialize CMP
     function initializeCmp() {
@@ -387,13 +447,14 @@ function initialize() {
                 return gptSlot
             })
         }
+    
+        addClientTargeting();
 
         gptSizeMappingDefineSlots();
 
         googletag.pubads().disableInitialLoad();
         googletag.pubads().collapseEmptyDivs(streamampConfig.hasCollapsedEmptyDivs);
         googletag.pubads().enableSingleRequest();
-        googletag.pubads().setTargeting('scriptTesting', 'a9');
         googletag.enableServices();
     });
 
@@ -512,6 +573,7 @@ function initialize() {
                 }
 
                 pbjs.setTargetingForGPTAsync();
+                addClientTargeting();
                 googletag.pubads().refresh();
             });
         }
@@ -617,6 +679,7 @@ function initialize() {
                 pbjs.requestBids({
                     bidsBackHandler: function (bidResponses) {
                         headerBidderBack('prebid');
+                        addClientTargeting();
                     }
                 });
             });
@@ -715,6 +778,7 @@ function stickyAd(adUnits) {
                 timeout: bidTimeout,
                 adUnitCodes: gptSlotsCodes,
                 bidsBackHandler: function () {
+                    addClientTargeting();
                 },
             });
             if (streamampConfig.a9Enabled) {
