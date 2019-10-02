@@ -62,7 +62,7 @@ function initialize() {
         window.streamampConfig.globalKeyValues.push({
             name: 'Level' + levelIndex,
             value: levels[levelIndex - 1] || 'none',
-            type: 'static'
+            keyValueType: 'static'
         });
         console.log('window.ampConfig.globalKeyValues',window.streamampConfig.globalKeyValues)
     };
