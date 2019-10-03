@@ -55,17 +55,39 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 function initialize() {
-    
-    // popuplates streamampConfig global key values
-    var levels = window.location.pathname.split('/').filter(function(level) { return level !== '';});
-    for(var levelIndex = 1; levelIndex < 6; levelIndex++) {
-        window.streamampConfig.globalKeyValues.push({
-            name: 'Level' + levelIndex,
-            value: levels[levelIndex - 1] || 'none',
-            keyValueType: 'static'
-        });
-    };
+	// Level Targeting
 
+	if (streamampConfig.levelTargeting) {
+		var levels = window.location.pathname.split('/').filter(function(level) { return level !== '';});
+		for(var levelIndex = 1; levelIndex < 6; levelIndex++) {
+			window.streamampConfig.globalKeyValues.push({
+				name: 'Level' + levelIndex,
+				value: levels[levelIndex - 1] || 'none',
+				keyValueType: 'static'
+			});
+		}
+	}
+
+	// Toggle off URLS
+
+	if(streamampConfig.toggleOffUrls) {
+
+		streamampConfig.toggleOffUrls.forEach(function(url) {
+			var levelsKeys = Object.keys(url);
+			var toggleOff = false;
+			levelsKeys.forEach(function(levelKey) {
+				if(levels && levels[levelKey-1] && levels[levelKey-1].toLowerCase() === url[levelKey].toLowerCase()) {
+					toggleOff = true;
+				}
+
+			})
+			if(toggleOff) {
+				window.streamampConfig.adUnits.forEach(function(adUnit) {
+					adUnit.bids = []
+				})
+			}
+		})
+	}
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
         var filteredAdUnits = streamampConfig.adUnits;
@@ -100,14 +122,14 @@ function initialize() {
     function isNotEmptyCmp(obj) {
         return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
     };
-    
+
     function addClientTargeting() {
         var key;
         var keyValue;
         var i;
         var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
-       
-        
+
+
         if (clientConfig && clientConfig.targets) {
             for (key in clientConfig.targets) {
                 if (clientConfig.targets.hasOwnProperty(key)) {
@@ -116,16 +138,16 @@ function initialize() {
                         value: clientConfig.targets[key],
                         keyValueType: 'static'
                     };
-                    
+
                     keyValue = normalizeKeyValue(keyValue);
-                    
+
                     googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
                 }
             }
         }
-        
+
         if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
-           
+
             for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
                 keyValue = streamampConfig.globalKeyValues[i];
                 keyValue = normalizeKeyValue(keyValue);
@@ -434,7 +456,7 @@ function initialize() {
                 return gptSlot
             })
         }
-    
+
         addClientTargeting();
 
         gptSizeMappingDefineSlots();
@@ -819,6 +841,6 @@ function normalizeKeyValue(keyValue){
             keyValue.value = undefined;
         }
     }
-    
+
     return keyValue;
 };
