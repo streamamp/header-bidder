@@ -55,6 +55,9 @@ var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
 function initialize() {
+    // 'desktop print' added to toggle on 
+    window.AD_UNITS_TOGGLE_ON.push('Desktop_print')
+    
 	// Level Targeting
 
 	if (streamampConfig.levelTargeting) {
@@ -88,6 +91,13 @@ function initialize() {
 			}
 		})
 	}
+    
+    // Check if toggle on/off is in use and filter streamampConfig adUnits
+    if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
+        // Update streamampConfig adUnits to use the filteredAdUnits
+        streamampConfig.adUnits = filterToggleOnOff();
+    };
+	
 // Function to filter ad units using toggle on/off arrays
     function filterToggleOnOff() {
         var filteredAdUnits = streamampConfig.adUnits;
@@ -106,13 +116,7 @@ function initialize() {
 
         return filteredAdUnits;
     };
-
-// Check if toggle on/off is in use and filter streamampConfig adUnits
-    if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
-        // Update streamampConfig adUnits to use the filteredAdUnits
-        streamampConfig.adUnits = filterToggleOnOff();
-    };
-
+    
 // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
         initializeCmp()
