@@ -6,14 +6,15 @@ function splitHostname() {
     var urlParts = regexParse.exec(window.location.hostname);
     result.domain = urlParts[1];
     result.type = urlParts[2];
-    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);;
+    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);
+    ;
     return result;
 }
 
 var publisher
 
 // Set publisher to the domain from SplitHostname()
-if (splitHostname().domain === 'road'){
+if (splitHostname().domain === 'road') {
     publisher = splitHostname().subdomain + splitHostname().domain
 } else {
     publisher = splitHostname().domain
@@ -32,7 +33,6 @@ var gptLib = document.createElement('script');
 gptLib.type = 'text/javascript';
 gptLib.async = true;
 gptLib.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
-var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(gptLib, node);
 
 // Load PBJS library
@@ -40,11 +40,27 @@ var prebid = document.createElement('script');
 prebid.type = 'text/javascript';
 prebid.async = true;
 prebid.src = '//static.amp.services/prebid2.28.0.js';
-var node = document.getElementsByTagName('script')[0];
 node.parentNode.insertBefore(prebid, node);
 
 // Load apstag library
-!function(a9,a,p,s,t,A,g){if(a[a9])return;function q(c,r){a[a9]._Q.push([c,r])}a[a9]={init:function(){q("i",arguments)},fetchBids:function(){q("f",arguments)},setDisplayBids:function(){},targetingKeys:function(){return[]},_Q:[]};A=p.createElement(s);A.async=!0;A.src=t;g=p.getElementsByTagName(s)[0];g.parentNode.insertBefore(A,g)}("apstag",window,document,"script","//c.amazon-adsystem.com/aax2/apstag.js");
+!function (a9, a, p, s, t, A, g) {
+    if (a[a9]) return;
+    
+    function q(c, r) {a[a9]._Q.push([c, r])}
+    
+    a[a9] = {
+        init: function () {q("i", arguments)},
+        fetchBids: function () {q("f", arguments)},
+        setDisplayBids: function () {},
+        targetingKeys: function () {return []},
+        _Q: []
+    };
+    A = p.createElement(s);
+    A.async = !0;
+    A.src = t;
+    g = p.getElementsByTagName(s)[0];
+    g.parentNode.insertBefore(A, g)
+}("apstag", window, document, "script", "//c.amazon-adsystem.com/aax2/apstag.js");
 
 // Initialize GPT
 var googletag = googletag || {};
@@ -54,82 +70,142 @@ googletag.cmd = googletag.cmd || [];
 var pbjs = pbjs || {};
 pbjs.que = pbjs.que || [];
 
-function initialize() {
-	// Level Targeting
-
-	if (streamampConfig.levelTargeting) {
-		var levels = window.location.pathname.split('/').filter(function(level) { return level !== '';});
-		for(var levelIndex = 1; levelIndex < 6; levelIndex++) {
-			window.streamampConfig.globalKeyValues.push({
-				name: 'Level' + levelIndex,
-				value: levels[levelIndex - 1] || 'none',
-				keyValueType: 'static'
-			});
-		}
-	}
-
-	// Toggle off URLS
-
-	if(streamampConfig.toggleOffUrls) {
-
-		streamampConfig.toggleOffUrls.forEach(function(url) {
-			var levelsKeys = Object.keys(url);
-			var toggleOff = false;
-			levelsKeys.forEach(function(levelKey) {
-				if(levels && levels[levelKey-1] && levels[levelKey-1].toLowerCase() === url[levelKey].toLowerCase()) {
-					toggleOff = true;
-				}
-
-			})
-			if(toggleOff) {
-				window.streamampConfig.adUnits.forEach(function(adUnit) {
-					adUnit.bids = []
-				})
-			}
-		})
-	}
-// Function to filter ad units using toggle on/off arrays
-    function filterToggleOnOff() {
-        var filteredAdUnits = streamampConfig.adUnits;
-
-        if(window.AD_UNITS_TOGGLE_ON) {
-            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
+var utils = {
+    normalizeKeyValue: function (keyValue) {
+        if (keyValue && keyValue.keyValueType === 'variable') {
+            keyValue.value = window[keyValue.value];
+            if (keyValue.value === '') {
+                keyValue.value = undefined;
+            }
+        }
+        return keyValue;
+    },
+    isNotEmptyCmp: function (obj) {
+        return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
+    },
+    filterToggleOnOff: function (config) {
+        var filteredAdUnits = config.adUnits;
+    
+        if (window.AD_UNITS_TOGGLE_ON) {
+            filteredAdUnits = config.adUnits.filter(function (adUnit) {
                 // Only keep ad units that ARE in the TOGGLE_ON array
                 return window.AD_UNITS_TOGGLE_ON.indexOf(adUnit.code) !== -1;
             })
         } else {
-            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
+            filteredAdUnits = config.adUnits.filter(function (adUnit) {
                 // Keep all ad units that are NOT in the TOGGLE_OFF array
                 return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnit.code) === -1;
             })
         }
-
         return filteredAdUnits;
-    };
+    },
+    applyStyle: function (adUnit) {
+        var adUnitCode = adUnit.code;
+        var stickyAdPosition = adUnit.stickyAdPosition;
+    
+        var adContainer = document.getElementById(adUnitCode);
+    
+        if (adContainer) {
+            adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
+            adContainer.style.position = 'fixed';
+            adContainer.style.bottom = '0px';
+            adContainer.style.padding = '4px 0 0 0';
+            adContainer.style.zIndex = '9999';
+            adContainer.style.width = '100%';
+            adContainer.style.textAlign = 'center';
+        
+            if (stickyAdPosition == 'bl') { // bottom left
+                adContainer.style.left = '0px';
+            } else if (stickyAdPosition == 'br') { // bottom right
+                adContainer.style.right = '0px';
+            } else { // default to be bottom center
+                adContainer.style.transform = 'translate(-50%, 0%)';
+                adContainer.style.left = '50%';
+            }
+        
+            adContainer.style.display = '';
+        
+            var closeAdButton = document.createElement('img');
+            closeAdButton.id = "close-button";
+            closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
+            closeAdButton.style.position = "absolute";
+            closeAdButton.style.top = "-12px";
+            closeAdButton.style.right = "3px";
+            closeAdButton.style.maxWidth = "24px";
+            closeAdButton.style.maxHeight = "24px";
+        
+            // add button event
+            closeAdButton.onclick = function () {
+                adContainer.style.display = 'none';
+            };
+            adContainer.appendChild(closeAdButton);
+        
+            var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
+        
+            if (frame && frame.contentWindow.length) {
+                document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
+                document.getElementById("close-button").style.display = "none";
+            }
+        }
+    },
+    isEmpty: function (obj) {
+        for(var key in obj) {
+            if(obj.hasOwnProperty(key))
+                return false;
+        }
+        return true;
+    },
+    stickyAd: function (adUnits, googletag) {
+        var stickyAdUnits = adUnits.filter(function (adUnit) { return adUnit.isSticky === true; });
+    
+        if (stickyAdUnits.length === 0) {
+            return;
+        }
+    
+        googletag.cmd.push(function () {
+            googletag.pubads().addEventListener('slotRenderEnded', function (e) {
+                if (!e.isEmpty) {
+                    stickyAdUnits
+                        .filter(function (adUnit) { return adUnit.code === e.slot.getSlotElementId(); })
+                        .map(function (adUnit) { utils.applyStyle(adUnit); });
+                }
+            });
+        });
+    },
+    levelTargeting: function (levels) {
+        for (var levelIndex = 1; levelIndex < 6; levelIndex++) {
+            window.streamampConfig.globalKeyValues.push({
+                name: 'Level' + levelIndex,
+                value: levels[levelIndex - 1] || 'none',
+                keyValueType: 'static'
+            });
+        }
+    },
+    toggleOffUrls: function (config, levels) {
+        config.toggleOffUrls.forEach(function (url) {
+            var levelsKeys = Object.keys(url);
+            var toggleOff = false;
+            levelsKeys.forEach(function (levelKey) {
+                if (levels && levels[levelKey - 1] && levels[levelKey - 1].toLowerCase() === url[levelKey].toLowerCase()) {
+                    toggleOff = true;
+                }
+            })
+            if (toggleOff) {
+                window.streamampConfig.adUnits.forEach(function (adUnit) {
+                    adUnit.bids = []
+                })
+            }
+        })
+    }
+}
 
-// Check if toggle on/off is in use and filter streamampConfig adUnits
-    if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
-        // Update streamampConfig adUnits to use the filteredAdUnits
-        streamampConfig.adUnits = filterToggleOnOff();
-    };
-
-// Initialize CMP if enabled
-    if (streamampConfig.cmp.isEnabled) {
-        initializeCmp()
-    };
-
-// Checks if an object is NOT empty - for CMP styles
-    function isNotEmptyCmp(obj) {
-        return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
-    };
-
-    function addClientTargeting() {
+var streamampPrebid = {
+    addClientTargeting: function (config, googletag) {
         var key;
         var keyValue;
         var i;
-        var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
-
-
+        var clientConfig = window[config.namespace + 'ClientConfig'] || {};
+    
         if (clientConfig && clientConfig.targets) {
             for (key in clientConfig.targets) {
                 if (clientConfig.targets.hasOwnProperty(key)) {
@@ -138,19 +214,19 @@ function initialize() {
                         value: clientConfig.targets[key],
                         keyValueType: 'static'
                     };
-
-                    keyValue = normalizeKeyValue(keyValue);
-
+                
+                    keyValue = utils.normalizeKeyValue(keyValue);
+                
                     googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
                 }
             }
         }
-
-        if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
-
-            for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
-                keyValue = streamampConfig.globalKeyValues[i];
-                keyValue = normalizeKeyValue(keyValue);
+    
+        if (config.globalKeyValues && config.globalKeyValues.length) {
+        
+            for (i = 0; i < config.globalKeyValues.length; i++) {
+                keyValue = config.globalKeyValues[i];
+                keyValue = utils.normalizeKeyValue(keyValue);
                 if (keyValue.value !== undefined) {
                     googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
                 } else {
@@ -159,281 +235,318 @@ function initialize() {
             }
         }
     }
+}
 
 // Function to initialize CMP
-    function initializeCmp() {
-        var elem = document.createElement('script');
-        elem.src = 'https://quantcast.mgr.consensu.org/cmp.js';
-        elem.async = true;
-        elem.type = "text/javascript";
-        var scpt = document.getElementsByTagName('script')[0];
-        scpt.parentNode.insertBefore(elem, scpt);
-        (function () {
-            var gdprAppliesGlobally = false;
-
-            function addFrame() {
-                if (!window.frames['__cmpLocator']) {
-                    if (document.body) {
-                        var body = document.body,
-                            iframe = document.createElement('iframe');
-                        iframe.style = 'display:none';
-                        iframe.name = '__cmpLocator';
-                        body.appendChild(iframe);
-                    } else {
-                        // In the case where this stub is located in the head,
-                        // this allows us to inject the iframe more quickly than
-                        // relying on DOMContentLoaded or other events.
-                        setTimeout(addFrame, 5);
-                    }
-                }
-            }
-
-            addFrame();
-
-            function cmpMsgHandler(event) {
-                var msgIsString = typeof event.data === "string";
-                var json;
-                if (msgIsString) {
-                    json = event.data.indexOf("__cmpCall") != -1 ? JSON.parse(event.data) : {};
+function initializeCmp(config) {
+    var elem = document.createElement('script');
+    elem.src = 'https://quantcast.mgr.consensu.org/cmp.js';
+    elem.async = true;
+    elem.type = "text/javascript";
+    var scpt = document.getElementsByTagName('script')[0];
+    scpt.parentNode.insertBefore(elem, scpt);
+    (function () {
+        var gdprAppliesGlobally = false;
+        
+        function addFrame() {
+            if (!window.frames['__cmpLocator']) {
+                if (document.body) {
+                    var body = document.body,
+                        iframe = document.createElement('iframe');
+                    iframe.style = 'display:none';
+                    iframe.name = '__cmpLocator';
+                    body.appendChild(iframe);
                 } else {
-                    json = event.data;
-                }
-                if (json.__cmpCall) {
-                    var i = json.__cmpCall;
-                    window.__cmp(i.command, i.parameter, function (retValue, success) {
-                        var returnMsg = {
-                            "__cmpReturn": {
-                                "returnValue": retValue,
-                                "success": success,
-                                "callId": i.callId
-                            }
-                        };
-                        event.source.postMessage(msgIsString ?
-                            JSON.stringify(returnMsg) : returnMsg, '*');
-                    });
+                    // In the case where this stub is located in the head,
+                    // this allows us to inject the iframe more quickly than
+                    // relying on DOMContentLoaded or other events.
+                    setTimeout(addFrame, 5);
                 }
             }
-
-            window.__cmp = function (c) {
-                var b = arguments;
-                if (!b.length) {
-                    return __cmp.a;
-                } else if (b[0] === 'ping') {
-                    b[2]({
-                        "gdprAppliesGlobally": gdprAppliesGlobally,
-                        "cmpLoaded": false
-                    }, true);
-                } else if (c == '__cmp')
-                    return false;
-                else {
-                    if (typeof __cmp.a === 'undefined') {
-                        __cmp.a = [];
-                    }
-                    __cmp.a.push([].slice.apply(b));
-                }
-            };
-            window.__cmp.gdprAppliesGlobally = gdprAppliesGlobally;
-            window.__cmp.msgHandler = cmpMsgHandler;
-            if (window.addEventListener) {
-                window.addEventListener('message', cmpMsgHandler, false);
-            } else {
-                window.attachEvent('onmessage', cmpMsgHandler);
-            }
-        })();
-
-        // Initialize CMP with custom configuration
-        window.__cmp('init', streamampConfig.cmp.config);
-
-        // Apply custom CMP styles if true
-        if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
-            var style = document.createElement('style');
-            var ref = document.querySelector('script');
-
-            var quantcastTheme = streamampConfig.cmp.styles;
-
-            style.innerHTML =
-                // Background
-                (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
-                    ? '.qc-cmp-ui' + '{' +
-                    'background-color:' + quantcastTheme.ui.backgroundColor + '!important;' +
-                    '}'
-                    : '') +
-                // Main Text Color
-                (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.textColor
-                    ? '.qc-cmp-ui,' +
-                    '.qc-cmp-ui .qc-cmp-main-messaging,' +
-                    '.qc-cmp-ui .qc-cmp-messaging,' +
-                    '.qc-cmp-ui .qc-cmp-beta-messaging,' +
-                    '.qc-cmp-ui .qc-cmp-title,' +
-                    '.qc-cmp-ui .qc-cmp-sub-title,' +
-                    '.qc-cmp-ui .qc-cmp-purpose-info,' +
-                    '.qc-cmp-ui .qc-cmp-table,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-list,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-list-title' + '{' +
-                    'color:' + quantcastTheme.ui.textColor + '!important;' +
-                    '}'
-                    : '') +
-                // Links
-                (isNotEmptyCmp(quantcastTheme.link)
-                    ? '.qc-cmp-ui a,' +
-                    '.qc-cmp-ui .qc-cmp-alt-action,' +
-                    '.qc-cmp-ui .qc-cmp-link' + '{' +
-                    (quantcastTheme.link.textColor ? 'color:' + quantcastTheme.link.textColor + '!important;' : '') +
-                    (quantcastTheme.link.isUnderlined ? 'text-decoration: underline' : 'text-decoration: none' + '!important;') +
-                    '}'
-                    : '') +
-                // Buttons
-                (isNotEmptyCmp(quantcastTheme.primaryButton)
-                    ? '.qc-cmp-ui .qc-cmp-button' + '{' +
-                    (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
-                    (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.primaryButtonHover)
-                    ? '.qc-cmp-ui .qc-cmp-button:hover' + '{' +
-                    (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
-                    (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.secondaryButton)
-                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                    (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.secondaryButtonHover)
-                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button:hover' + '{' +
-                    (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.isSecondaryButtonHidden
-                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                    'display: none!important;' +
-                    '}' +
-                    // Without the below the 'Reject all' button will not show on purpose/vendor pages
-                    '.qc-cmp-ui .qc-cmp-horizontal-buttons .qc-cmp-button.qc-cmp-secondary-button,' +
-                    '.qc-cmp-ui .qc-cmp-nav-bar-buttons-container .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                    'display: block!important;' +
-                    '}' +
-                    // Without the below the 'Accept' button will be too big on the main page - mobile view
-                    '@media screen and (max-width: 550px)' + '{' +
-                    '.qc-cmp-buttons.qc-cmp-primary-buttons' + '{' +
-                    'height: 3.8rem!important;' +
-                    '}' +
-                    '}'
-                    : '') +
-                // Tables
-                (isNotEmptyCmp(quantcastTheme.tableHeader)
-                    ? '.qc-cmp-ui .qc-cmp-table-header,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
-                    (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.tableRow)
-                    ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-row,' +
-                    '.qc-cmp-ui .qc-cmp-table-row.qc-cmp-vendor-row' + '{' +
-                    (quantcastTheme.tableRow.backgroundColor ? 'background-color:' + quantcastTheme.tableRow.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                // Table content inherit color
-                    '.qc-cmp-ui .qc-cmp-purpose-description,' +
-                    '.qc-cmp-ui .qc-cmp-company-cell,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-info-content,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-policy,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-info-list' + '{' +
-                    'color: inherit!important;' +
-                    '}' +
-                // Toggles
-                (isNotEmptyCmp(quantcastTheme.toggleOn)
-                    ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
-                    '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-on' + '{' +
-                    (quantcastTheme.toggleOn.backgroundColor ? 'background-color:' + quantcastTheme.toggleOn.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.toggleOn.borderColor ? 'border-color:' + quantcastTheme.toggleOn.borderColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.toggleOff)
-                    ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-off,' +
-                    '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-off' + '{' +
-                    (quantcastTheme.toggleOff.backgroundColor ? 'background-color:' + quantcastTheme.toggleOff.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.toggleOff.borderColor ? 'border-color:' + quantcastTheme.toggleOff.borderColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                (quantcastTheme.toggleSwitchBorderColor
-                    ? '.qc-cmp-ui .qc-cmp-toggle-switch' + '{' +
-                    'border: 1px solid ' + quantcastTheme.toggleSwitchBorderColor + '!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.toggleStatusTextColor
-                    ? '.qc-cmp-ui .qc-cmp-toggle-status' + '{' +
-                    'color:' + quantcastTheme.toggleStatusTextColor + '!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.dropdownArrowColor
-                    ? '.qc-cmp-ui .qc-cmp-arrow-down' + '{' +
-                    'background:' +
-                    'url("data:image/svg+xml;charset=utf-8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'%23' +
-                    quantcastTheme.dropdownArrowColor.replace('#', '') +
-                    '\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M2 5l6 6 6-6\'/></svg>") 50% no-repeat' +
-                    '!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '') +
-                '}';
-
-            ref.parentNode.insertBefore(style, ref);
         }
+        
+        addFrame();
+        
+        function cmpMsgHandler(event) {
+            var msgIsString = typeof event.data === "string";
+            var json;
+            if (msgIsString) {
+                json = event.data.indexOf("__cmpCall") != -1 ? JSON.parse(event.data) : {};
+            } else {
+                json = event.data;
+            }
+            if (json.__cmpCall) {
+                var i = json.__cmpCall;
+                window.__cmp(i.command, i.parameter, function (retValue, success) {
+                    var returnMsg = {
+                        "__cmpReturn": {
+                            "returnValue": retValue,
+                            "success": success,
+                            "callId": i.callId
+                        }
+                    };
+                    event.source.postMessage(msgIsString ?
+                                             JSON.stringify(returnMsg) : returnMsg, '*');
+                });
+            }
+        }
+        
+        window.__cmp = function (c) {
+            var b = arguments;
+            if (!b.length) {
+                return __cmp.a;
+            } else if (b[0] === 'ping') {
+                b[2]({
+                    "gdprAppliesGlobally": gdprAppliesGlobally,
+                    "cmpLoaded": false
+                }, true);
+            } else if (c == '__cmp')
+                return false;
+            else {
+                if (typeof __cmp.a === 'undefined') {
+                    __cmp.a = [];
+                }
+                __cmp.a.push([].slice.apply(b));
+            }
+        };
+        window.__cmp.gdprAppliesGlobally = gdprAppliesGlobally;
+        window.__cmp.msgHandler = cmpMsgHandler;
+        if (window.addEventListener) {
+            window.addEventListener('message', cmpMsgHandler, false);
+        } else {
+            window.attachEvent('onmessage', cmpMsgHandler);
+        }
+    })();
+    
+    // Initialize CMP with custom configuration
+    window.__cmp('init', config.cmp.config);
+    
+    // Apply custom CMP styles if true
+    if (config.cmp.hasCustomStyles && utils.isNotEmptyCmp(config.cmp.styles)) {
+        var style = document.createElement('style');
+        var ref = document.querySelector('script');
+        
+        var quantcastTheme = config.cmp.styles;
+        
+        style.innerHTML =
+            // Background
+            (utils.isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
+             ? '.qc-cmp-ui' + '{' +
+                 'background-color:' + quantcastTheme.ui.backgroundColor + '!important;' +
+                 '}'
+             : '') +
+            // Main Text Color
+            (utils.isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.textColor
+             ? '.qc-cmp-ui,' +
+                 '.qc-cmp-ui .qc-cmp-main-messaging,' +
+                 '.qc-cmp-ui .qc-cmp-messaging,' +
+                 '.qc-cmp-ui .qc-cmp-beta-messaging,' +
+                 '.qc-cmp-ui .qc-cmp-title,' +
+                 '.qc-cmp-ui .qc-cmp-sub-title,' +
+                 '.qc-cmp-ui .qc-cmp-purpose-info,' +
+                 '.qc-cmp-ui .qc-cmp-table,' +
+                 '.qc-cmp-ui .qc-cmp-vendor-list,' +
+                 '.qc-cmp-ui .qc-cmp-vendor-list-title' + '{' +
+                 'color:' + quantcastTheme.ui.textColor + '!important;' +
+                 '}'
+             : '') +
+            // Links
+            (utils.isNotEmptyCmp(quantcastTheme.link)
+             ? '.qc-cmp-ui a,' +
+                 '.qc-cmp-ui .qc-cmp-alt-action,' +
+                 '.qc-cmp-ui .qc-cmp-link' + '{' +
+                 (quantcastTheme.link.textColor ? 'color:' + quantcastTheme.link.textColor + '!important;' : '') +
+                 (quantcastTheme.link.isUnderlined ? 'text-decoration: underline' : 'text-decoration: none' + '!important;') +
+                 '}'
+             : '') +
+            // Buttons
+            (utils.isNotEmptyCmp(quantcastTheme.primaryButton)
+             ? '.qc-cmp-ui .qc-cmp-button' + '{' +
+                 (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
+                 (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
+                 'background-image: none!important;' +
+                 '}'
+             : '') +
+            (utils.isNotEmptyCmp(quantcastTheme.primaryButtonHover)
+             ? '.qc-cmp-ui .qc-cmp-button:hover' + '{' +
+                 (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
+                 (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
+                 'background-image: none!important;' +
+                 '}'
+             : '') +
+            (utils.isNotEmptyCmp(quantcastTheme.secondaryButton)
+             ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                 (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
+                 (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
+                 'background-image: none!important;' +
+                 '}'
+             : '') +
+            (utils.isNotEmptyCmp(quantcastTheme.secondaryButtonHover)
+             ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button:hover' + '{' +
+                 (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
+                 (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
+                 'background-image: none!important;' +
+                 '}'
+             : '') +
+            (quantcastTheme.isSecondaryButtonHidden
+             ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                 'display: none!important;' +
+                 '}' +
+                 // Without the below the 'Reject all' button will not show on purpose/vendor pages
+                 '.qc-cmp-ui .qc-cmp-horizontal-buttons .qc-cmp-button.qc-cmp-secondary-button,' +
+                 '.qc-cmp-ui .qc-cmp-nav-bar-buttons-container .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                 'display: block!important;' +
+                 '}' +
+                 // Without the below the 'Accept' button will be too big on the main page - mobile view
+                 '@media screen and (max-width: 550px)' + '{' +
+                 '.qc-cmp-buttons.qc-cmp-primary-buttons' + '{' +
+                 'height: 3.8rem!important;' +
+                 '}' +
+                 '}'
+             : '') +
+            // Tables
+            (utils.isNotEmptyCmp(quantcastTheme.tableHeader)
+             ? '.qc-cmp-ui .qc-cmp-table-header,' +
+                 '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
+                 (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
+                 '}'
+             : '') +
+            (utils.isNotEmptyCmp(quantcastTheme.tableRow)
+             ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-row,' +
+                 '.qc-cmp-ui .qc-cmp-table-row.qc-cmp-vendor-row' + '{' +
+                 (quantcastTheme.tableRow.backgroundColor ? 'background-color:' + quantcastTheme.tableRow.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
+                 '}'
+             : '') +
+            // Table content inherit color
+            '.qc-cmp-ui .qc-cmp-purpose-description,' +
+            '.qc-cmp-ui .qc-cmp-company-cell,' +
+            '.qc-cmp-ui .qc-cmp-vendor-info-content,' +
+            '.qc-cmp-ui .qc-cmp-vendor-policy,' +
+            '.qc-cmp-ui .qc-cmp-vendor-info-list' + '{' +
+            'color: inherit!important;' +
+            '}' +
+            // Toggles
+            (utils.isNotEmptyCmp(quantcastTheme.toggleOn)
+             ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
+                 '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-on' + '{' +
+                 (quantcastTheme.toggleOn.backgroundColor ? 'background-color:' + quantcastTheme.toggleOn.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.toggleOn.borderColor ? 'border-color:' + quantcastTheme.toggleOn.borderColor + '!important;' : '') +
+                 '}'
+             : '') +
+            (utils.isNotEmptyCmp(quantcastTheme.toggleOff)
+             ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-off,' +
+                 '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-off' + '{' +
+                 (quantcastTheme.toggleOff.backgroundColor ? 'background-color:' + quantcastTheme.toggleOff.backgroundColor + '!important;' : '') +
+                 (quantcastTheme.toggleOff.borderColor ? 'border-color:' + quantcastTheme.toggleOff.borderColor + '!important;' : '') +
+                 '}'
+             : '') +
+            (quantcastTheme.toggleSwitchBorderColor
+             ? '.qc-cmp-ui .qc-cmp-toggle-switch' + '{' +
+                 'border: 1px solid ' + quantcastTheme.toggleSwitchBorderColor + '!important;' +
+                 '}'
+             : '') +
+            (quantcastTheme.toggleStatusTextColor
+             ? '.qc-cmp-ui .qc-cmp-toggle-status' + '{' +
+                 'color:' + quantcastTheme.toggleStatusTextColor + '!important;' +
+                 '}'
+             : '') +
+            (quantcastTheme.dropdownArrowColor
+             ? '.qc-cmp-ui .qc-cmp-arrow-down' + '{' +
+                 'background:' +
+                 'url("data:image/svg+xml;charset=utf-8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'%23' +
+                 quantcastTheme.dropdownArrowColor.replace('#', '') +
+                 '\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M2 5l6 6 6-6\'/></svg>") 50% no-repeat' +
+                 '!important;' +
+                 '}'
+             : '') +
+            (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '') +
+            '}';
+        
+        ref.parentNode.insertBefore(style, ref);
+    }
+}
+
+function initialize() {
+    /* -------------- global variables --------------- */
+    // Set universal timeout
+    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
+    // Define PBJS Ad Slots
+    var adUnits = streamampConfig.adUnits;
+    // Define apstag slots
+    var apstagSlots = adUnits.map(function (adUnit) {
+        return {
+            slotID: adUnit.code,
+            slotName: adUnit.path,
+            sizes: adUnit.mediaTypes.banner.sizes,
+        }
+    });
+    var levels = window.location.pathname.split('/').filter(function (level) { return level !== '';});
+    /* -------------------------------------------------------- */
+    
+    // Level Targeting
+    if (streamampConfig.levelTargeting) {
+        utils.levelTargeting(levels)
+    }
+    
+    // Toggle off URLS
+    if (streamampConfig.toggleOffUrls) {
+        utils.toggleOffUrls(streamampConfig, levels)
     }
 
+    // Check if toggle on/off is in use and filter streamampConfig adUnits
+    if (window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
+        // Update streamampConfig adUnits to use the filteredAdUnits
+        streamampConfig.adUnits = utils.filterToggleOnOff(streamampConfig);
+    };
 
-// Initialize apstag
+    // Initialize CMP if enabled
+    if (streamampConfig.cmp.isEnabled) {
+        initializeCmp(streamampConfig)
+    };
+
+    // Initialize apstag
     apstag.init({
         pubID: streamampConfig.apsPubID,
         adServer: 'googletag'
     });
 
-// Define ad slots and size mapping with GPT
-
-// Set empty arrays for GPT units and codes
+    // Define ad slots and size mapping with GPT
+    // Set empty arrays for GPT units and codes
     var gptSlots = [];
     var gptSlotsCodes = [];
-
-    googletag.cmd.push(function() {
+    
+    googletag.cmd.push(function () {
         function singleBreakpointSizeMapping(minWidth, sizesSuppport) {
             return googletag.sizeMapping().addSize([minWidth, 0], sizesSuppport).build()
         }
-
+        
         function allBreakpointsSizeMapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
-            return streamampConfig.breakpoints.map(function(breakpoint, index) {
+            return streamampConfig.breakpoints.map(function (breakpoint, index) {
                 var adUnitbreakpointsbreakpointlabel = adUnitbreakpoints[breakpoint.label] ? adUnitbreakpoints[breakpoint.label] : []
                 return singleBreakpointSizeMapping(breakpoint.minWidth, compareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))[0]
             })
         }
-
+        
         function compareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUnitmediaTypesbannersizes) {
             var matchingSizes = []
             var googleSize = [[320, 100], [970, 90], [468, 60], [120, 600]]
-            breakpoints.forEach(function(breakpoint) {
+            breakpoints.forEach(function (breakpoint) {
                 if (adUnitbreakpointsSizes) {
-                    adUnitbreakpointsSizes.forEach(function(adUnitbreakpointsSize) {
+                    adUnitbreakpointsSizes.forEach(function (adUnitbreakpointsSize) {
                         if (JSON.stringify(breakpoint) === JSON.stringify(adUnitbreakpointsSize)) {
                             matchingSizes.push(adUnitbreakpointsSize)
                         }
                     })
                 }
             });
-            googleSize.forEach(function(size) {
-                adUnitbreakpointsSizes.forEach(function(adUnitbreakpointsSize) {
+            googleSize.forEach(function (size) {
+                adUnitbreakpointsSizes.forEach(function (adUnitbreakpointsSize) {
                     if (JSON.stringify(size) === JSON.stringify(adUnitbreakpointsSize)) {
                         matchingSizes.push(adUnitbreakpointsSize)
                     }
@@ -441,9 +554,9 @@ function initialize() {
             })
             return matchingSizes
         }
-
+        
         function gptSizeMappingDefineSlots() {
-            return streamampConfig.adUnits.map(function(adUnit) {
+            return streamampConfig.adUnits.map(function (adUnit) {
                 var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {}
                 var defineSlot = adUnit.outOfPage
                                  ? googletag.defineOutOfPageSlot(adUnit.path, adUnit.code)
@@ -456,32 +569,17 @@ function initialize() {
                 return gptSlot
             })
         }
-
-        addClientTargeting();
-
+        
+        streamampPrebid.addClientTargeting(streamampConfig, googletag);
+        
         gptSizeMappingDefineSlots();
-
+        
         googletag.pubads().disableInitialLoad();
         googletag.pubads().collapseEmptyDivs(streamampConfig.hasCollapsedEmptyDivs);
         googletag.pubads().enableSingleRequest();
         googletag.enableServices();
     });
-
-// Set universal timeout
-    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
-
-// Define apstag slots
-    var apstagSlots = streamampConfig.adUnits.map(function (adUnit) {
-        return {
-            slotID: adUnit.code,
-            slotName: adUnit.path,
-            sizes: adUnit.mediaTypes.banner.sizes,
-        }
-    });
-
-// Define PBJS Ad Slots
-    var adUnits = streamampConfig.adUnits;
-
+    
     // Enable Analytics Module and define aliased bidders
     pbjs.que.push(function () {
         pbjs.enableAnalytics({
@@ -491,11 +589,11 @@ function initialize() {
                 token: streamampConfig.token
             }
         });
-
+        
         // Define aliased adapters
         let alias = []
-        adUnits.forEach(function(adUnit) {
-            adUnit.bids.forEach(function(bid) {
+        adUnits.forEach(function (adUnit) {
+            adUnit.bids.forEach(function (bid) {
                 if (bid.bidder === 'streamamp' || bid.bidder === 'totaljobs') {
                     if (!alias.includes(bid.bidder)) {
                         alias.push(bid.bidder)
@@ -503,33 +601,33 @@ function initialize() {
                 }
             })
         })
-
+        
         if (alias.length !== 0) {
-            alias.forEach(function(name) {
+            alias.forEach(function (name) {
                 pbjs.aliasBidder('appnexus', name)
             })
         }
     });
 
-// Fetch header bids
+    // Fetch header bids
     function fetchHeaderBids() {
         // Declare header bidders
         var bidders = ['prebid'];
-
+        
         if (streamampConfig.a9Enabled) {
             bidders = ['a9', 'prebid'];
         }
-
+        
         // Keep track of bidders state to determine when to send ad server request
         var requestManager = {
             adserverRequestSent: false,
         };
-
+        
         // Loop through bidder array and add the bidders to the request manager
         bidders.forEach(function (bidder) {
             requestManager[bidder] = false;
         });
-
+        
         // Return true if all bidders have returned
         function allBiddersBack() {
             var allBiddersBack = bidders
@@ -543,7 +641,7 @@ function initialize() {
                 .length === bidders.length;
             return allBiddersBack;
         }
-
+        
         // Handler for header bidder responses
         function headerBidderBack(bidder) {
             // Return early if request to adserver is already sent
@@ -561,7 +659,7 @@ function initialize() {
                 sendAdServerRequest();
             }
         }
-
+        
         // Get ads from GAM
         function sendAdServerRequest() {
             // Return early if request already sent
@@ -576,17 +674,17 @@ function initialize() {
             requestManager.sendAdServerRequest = true;
             // Set bid targeting and make ad request to GAM
             googletag.cmd.push(function () {
-
+                
                 if (streamampConfig.a9Enabled) {
                     apstag.setDisplayBids();
                 }
-
+                
                 pbjs.setTargetingForGPTAsync();
-                addClientTargeting();
+                streamampPrebid.addClientTargeting(streamampConfig, googletag);
                 googletag.pubads().refresh();
             });
         }
-
+        
         // Request all bids
         function requestBids(apstagSlots, adUnits, bidTimeout) {
             // Request bids from apstag
@@ -598,7 +696,7 @@ function initialize() {
                     headerBidderBack('a9');
                 });
             }
-
+            
             // Request bids from prebid
             pbjs.que.push(function () {
                 pbjs.addAdUnits(adUnits);
@@ -688,92 +786,22 @@ function initialize() {
                 pbjs.requestBids({
                     bidsBackHandler: function (bidResponses) {
                         headerBidderBack('prebid');
-                        addClientTargeting();
+                        streamampPrebid.addClientTargeting(streamampConfig, googletag);
                     }
                 });
             });
         }
-
+        
         requestBids(apstagSlots, adUnits, bidTimeout);
-
+        
         // Set timeout to send request to call sendAdServerRequest() after timeout if all bidders haven't returned before then
         window.setTimeout(function () {
             sendAdServerRequest();
         }, bidTimeout);
     }
-
-    // Sticky Ad
-
-function stickyAd(adUnits) {
-  var stickyAdUnits = adUnits.filter(function(adUnit) { return adUnit.isSticky === true; });
-
-  if (stickyAdUnits.length === 0) {
-    return;
-  }
-
-  googletag.cmd.push(function () {
-      googletag.pubads().addEventListener('slotRenderEnded', function(e) {
-          if (!e.isEmpty) {
-              stickyAdUnits
-                  .filter(function(adUnit) { return adUnit.code === e.slot.getSlotElementId(); })
-                  .map(function(adUnit) { applyStyle(adUnit); });
-          }
-      });
-  });
-  }
-
-  function applyStyle(adUnit) {
-    var adUnitCode = adUnit.code;
-    var stickyAdPosition = adUnit.stickyAdPosition;
-
-    var adContainer = document.getElementById(adUnitCode);
-
-    if (adContainer) {
-      adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
-      adContainer.style.position = 'fixed';
-      adContainer.style.bottom = '0px';
-      adContainer.style.padding = '4px 0 0 0';
-      adContainer.style.zIndex = '9999';
-      adContainer.style.width = '100%';
-      adContainer.style.textAlign = 'center';
-
-      if (stickyAdPosition == 'bl') { // bottom left
-        adContainer.style.left = '0px';
-      } else if (stickyAdPosition == 'br') { // bottom right
-        adContainer.style.right = '0px';
-      } else { // default to be bottom center
-        adContainer.style.transform = 'translate(-50%, 0%)';
-        adContainer.style.left = '50%';
-      }
-
-      adContainer.style.display = '';
-
-      var closeAdButton = document.createElement('img');
-      closeAdButton.id = "close-button";
-      closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
-      closeAdButton.style.position = "absolute";
-      closeAdButton.style.top = "-12px";
-      closeAdButton.style.right = "3px";
-      closeAdButton.style.maxWidth = "24px";
-      closeAdButton.style.maxHeight = "24px";
-
-      // add button event
-      closeAdButton.onclick = function() {
-        adContainer.style.display = 'none';
-      };
-      adContainer.appendChild(closeAdButton);
-
-      var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
-
-      if(frame && frame.contentWindow.length) {
-        document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
-        document.getElementById("close-button").style.display = "none";
-      }
-    }
-  }
-
-  stickyAd (adUnits);
-
+    
+    utils.stickyAd(adUnits, googletag);
+    
     function refreshBids() {
         if (streamampConfig.a9Enabled) {
             apstag.fetchBids({
@@ -787,7 +815,7 @@ function stickyAd(adUnits) {
                 timeout: bidTimeout,
                 adUnitCodes: gptSlotsCodes,
                 bidsBackHandler: function () {
-                    addClientTargeting();
+                    streamampPrebid.addClientTargeting(streamampConfig, googletag);
                 },
             });
             if (streamampConfig.a9Enabled) {
@@ -798,7 +826,7 @@ function stickyAd(adUnits) {
         });
     }
 
-// If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
+    // If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
     if (streamampConfig.cmp.isEnabled) {
         window.__cmp('getConsentData', null, function (data, success) {
             fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
@@ -807,9 +835,9 @@ function stickyAd(adUnits) {
         fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
     }
 
-// Refresh bids handler
+    // Refresh bids handler
     window.adRefreshTimer = null;
-
+    
     var refreshAds = function () {
         if (window.adRefreshTimer) {
             window.clearInterval(window.adRefreshTimer);
@@ -821,7 +849,7 @@ function stickyAd(adUnits) {
         }, streamampConfig.refreshBidsTimeout * 1e3);
     };
     refreshAds();
-
+    
     window.onfocus = function () {
         refreshAds();
     };
@@ -829,18 +857,6 @@ function stickyAd(adUnits) {
         window.clearInterval(window.adRefreshTimer);
         window.adRefreshTimer = null;
     };
-
 };
 
-function normalizeKeyValue(keyValue){
-    if (keyValue && keyValue.keyValueType === 'variable')
-    {
-        keyValue.value = window[keyValue.value];
-        if (keyValue.value === '')
-        {
-            keyValue.value = undefined;
-        }
-    }
 
-    return keyValue;
-};
