@@ -196,6 +196,27 @@ var utils = {
                 })
             }
         })
+    },
+    refreshAds: function (config, refreshBids) {
+        var refreshAds = function () {
+            if (window.adRefreshTimer) {
+                window.clearInterval(window.adRefreshTimer);
+            }
+            window.adRefreshTimer = setInterval(function () {
+                if (config.hasRefreshBids) {
+                    refreshBids();
+                }
+            }, config.refreshBidsTimeout * 1e3);
+        };
+        refreshAds();
+    
+        window.onfocus = function () {
+            refreshAds();
+        };
+        window.onblur = function () {
+            window.clearInterval(window.adRefreshTimer);
+            window.adRefreshTimer = null;
+        };
     }
 }
 
@@ -492,12 +513,12 @@ function initialize() {
     // Level Targeting
     if (streamampConfig.levelTargeting) {
         utils.levelTargeting(levels)
-    }
+    };
     
     // Toggle off URLS
     if (streamampConfig.toggleOffUrls) {
         utils.toggleOffUrls(streamampConfig, levels)
-    }
+    };
 
     // Check if toggle on/off is in use and filter streamampConfig adUnits
     if (window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
@@ -610,7 +631,7 @@ function initialize() {
     });
 
     // Fetch header bids
-    function fetchHeaderBids() {
+    function fetchHeaderBids(apstagSlots) {
         // Declare header bidders
         var bidders = ['prebid'];
         
@@ -686,7 +707,7 @@ function initialize() {
         }
         
         // Request all bids
-        function requestBids(apstagSlots, adUnits, bidTimeout) {
+        function requestBids(adUnits, bidTimeout) {
             // Request bids from apstag
             if (streamampConfig.a9Enabled) {
                 apstag.fetchBids({
@@ -792,7 +813,7 @@ function initialize() {
             });
         }
         
-        requestBids(apstagSlots, adUnits, bidTimeout);
+        requestBids(adUnits, bidTimeout);
         
         // Set timeout to send request to call sendAdServerRequest() after timeout if all bidders haven't returned before then
         window.setTimeout(function () {
@@ -800,12 +821,11 @@ function initialize() {
         }, bidTimeout);
     }
     
-    utils.stickyAd(adUnits, googletag);
-    
     function refreshBids() {
+        // return fetchHeaderBids(streamampConfig.adUnitsToRefresh)
         if (streamampConfig.a9Enabled) {
             apstag.fetchBids({
-                slots: apstagSlots,
+                slots: streamampConfig.adUnitsToRefresh,
                 timeout: bidTimeout
             }, function (bids) {
             });
@@ -813,7 +833,7 @@ function initialize() {
         pbjs.que.push(function () {
             pbjs.requestBids({
                 timeout: bidTimeout,
-                adUnitCodes: gptSlotsCodes,
+                adUnitCodes: gptSlotsCodes[0],
                 bidsBackHandler: function () {
                     streamampPrebid.addClientTargeting(streamampConfig, googletag);
                 },
@@ -821,42 +841,34 @@ function initialize() {
             if (streamampConfig.a9Enabled) {
                 apstag.setDisplayBids();
             }
-            pbjs.setTargetingForGPTAsync(gptSlotsCodes);
-            googletag.pubads().refresh(gptSlots);
+            pbjs.setTargetingForGPTAsync(gptSlotsCodes[0]);
+            googletag.pubads().refresh(gptSlots[0]);
         });
     }
 
-    // If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
-    if (streamampConfig.cmp.isEnabled) {
-        window.__cmp('getConsentData', null, function (data, success) {
-            fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
-        });
-    } else {
-        fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
+    function init(streamampConfig) {
+        // If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
+        if (streamampConfig.cmp.isEnabled) {
+            window.__cmp('getConsentData', null, function (data, success) {
+                fetchHeaderBids(apstagSlots);
+            });
+        } else {
+            fetchHeaderBids(apstagSlots);
+        }
+        
+        utils.stickyAd(adUnits, googletag);
+    }
+    
+    if(!streamampConfig.preventInit){
+        init(streamampConfig)
     }
 
     // Refresh bids handler
     window.adRefreshTimer = null;
     
-    var refreshAds = function () {
-        if (window.adRefreshTimer) {
-            window.clearInterval(window.adRefreshTimer);
-        }
-        window.adRefreshTimer = setInterval(function () {
-            if (streamampConfig.hasRefreshBids) {
-                refreshBids();
-            }
-        }, streamampConfig.refreshBidsTimeout * 1e3);
-    };
-    refreshAds();
-    
-    window.onfocus = function () {
-        refreshAds();
-    };
-    window.onblur = function () {
-        window.clearInterval(window.adRefreshTimer);
-        window.adRefreshTimer = null;
-    };
+    if(streamampConfig.adUnitsToRefresh.length){
+        utils.refreshAds(streamampConfig, refreshBids)
+    }
 };
 
 
