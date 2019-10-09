@@ -833,7 +833,7 @@ function initialize() {
         pbjs.que.push(function () {
             pbjs.requestBids({
                 timeout: bidTimeout,
-                adUnitCodes: gptSlotsCodes[0],
+                adUnitCodes: [gptSlotsCodes[0]],
                 bidsBackHandler: function () {
                     streamampPrebid.addClientTargeting(streamampConfig, googletag);
                 },
@@ -841,8 +841,8 @@ function initialize() {
             if (streamampConfig.a9Enabled) {
                 apstag.setDisplayBids();
             }
-            pbjs.setTargetingForGPTAsync(gptSlotsCodes[0]);
-            googletag.pubads().refresh(gptSlots[0]);
+            pbjs.setTargetingForGPTAsync([gptSlotsCodes[0]]);
+            googletag.pubads().refresh([gptSlots[0]]);
         });
     }
 
