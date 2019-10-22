@@ -162,7 +162,6 @@ function splitHostname() {
     result.domain = urlParts[1];
     result.type = urlParts[2];
     result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);
-    ;
     return result;
 }
 
