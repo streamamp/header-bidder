@@ -1553,6 +1553,5 @@ window.streamamp = {
         streamampDestroySlots(selectedAdUnits)
     },
     initialize: streamampInit,
-    auctioneEndQue: streamampAuctionEndQueue,
-    que: window[streamampConfig.namespace].que
+    auctioneEndQue: streamampAuctionEndQueue
 }
