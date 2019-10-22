@@ -1,488 +1,310 @@
 // StreamAMP Header Bidder v1
-// Function to split host name
+
+var isClientDebugModeOn;
+
+function isClientDebugMode() {
+    if (isClientDebugModeOn !== undefined) {
+        return isClientDebugModeOn;
+    }
+    
+    var url = window.location.href;
+    var name = 'client_debug';
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+    var results = regex.exec(url);
+    if (!results) {
+        return false;
+    }
+    if (!results[2]) {
+        return false;
+    }
+    return (decodeURIComponent(results[2].replace(/\+/g, ' ')).toUpperCase() === 'TRUE');
+}
+
+var utils = {
+    split: function (array, chunkSize) {
+        var array_aux = array || [];
+        var result = [];
+        var length = array_aux.length;
+        for (var i = 0; i < length; i += chunkSize) {
+            result.push(array_aux.slice(i, i + chunkSize));
+        }
+        return result;
+    },
+    getBrowserWidth: function () {
+        var width;
+        
+        var topWindow = window.top || window;
+        
+        // if outer width is undefined or 0. 10000 is out of the breakpoint interval
+        var outerWidth = topWindow.outerWidth || 10000;
+        
+        if (topWindow.innerWidth !== undefined) {
+            width = topWindow.innerWidth;
+        } else if (topWindow.document.documentElement !== undefined && topWindow.document.documentElement.clientWidth !== undefined && topWindow.document.documentElement.clientWidth != 0) {
+            width = topWindow.document.documentElement.clientWidth;
+        } else {
+            width = topWindow.document.body.clientWidth;
+        }
+        
+        return Math.min(width, outerWidth);
+    },
+    loadScript: function (url) {
+        var scriptEl = document.createElement('script');
+        scriptEl.type = 'text/javascript';
+        scriptEl.async = true;
+        scriptEl.src = url;
+        
+        var node = document.getElementsByTagName('script')[0];
+        node.parentNode.insertBefore(scriptEl, node);
+    },
+    normalizeKeyValue: function (keyValue) {
+        if (keyValue && keyValue.keyValueType === 'variable') {
+            keyValue.value = window[keyValue.value];
+            if (keyValue.value === '') {
+                keyValue.value = undefined;
+            }
+        }
+        
+        return keyValue;
+    },
+    isClientDebugMode: isClientDebugMode,
+    log: function () {
+        if (isClientDebugMode()) {
+            console.log.apply(this, arguments);
+        }
+    },
+    logError: function () {
+        console.error.apply(this, arguments);
+    },
+    stickyAd: function (adUnits) {
+        var stickyAdUnits = adUnits.filter(function (adUnit) {
+            return adUnit.isSticky === true;
+        });
+        
+        if (stickyAdUnits.length === 0) {
+            return;
+        }
+        
+        googletag.cmd.push(function () {
+            googletag.pubads().addEventListener('slotRenderEnded', function (e) {
+                if (!e.isEmpty) {
+                    stickyAdUnits.filter(function (adUnit) {
+                        return adUnit.code === e.slot.getSlotElementId();
+                    }).map(function (adUnit) {
+                        utils.applyStyle(adUnit);
+                    });
+                }
+            });
+        });
+    },
+    applyStyle: function (adUnit) {
+        var adUnitCode = adUnit.code;
+        var stickyAdPosition = adUnit.stickyAdPosition;
+        
+        var adContainer = document.getElementById(adUnitCode);
+        
+        if (adContainer) {
+            adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
+            adContainer.style.position = 'fixed';
+            adContainer.style.bottom = '0px';
+            adContainer.style.padding = '4px 0 0 0';
+            adContainer.style.zIndex = '9999';
+            adContainer.style.width = '100%';
+            adContainer.style.textAlign = 'center';
+            
+            if (stickyAdPosition === 'bl') {
+                // bottom left
+                adContainer.style.left = '0px';
+            } else if (stickyAdPosition === 'br') {
+                // bottom right
+                adContainer.style.right = '0px';
+            } else {
+                // default to be bottom center
+                adContainer.style.transform = 'translate(-50%, 0%)';
+                adContainer.style.left = '50%';
+            }
+            
+            adContainer.style.display = '';
+            
+            var closeAdButton = document.createElement('img');
+            closeAdButton.id = "close-button";
+            closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
+            closeAdButton.style.position = "absolute";
+            closeAdButton.style.top = "-12px";
+            closeAdButton.style.right = "3px";
+            closeAdButton.style.maxWidth = "24px";
+            closeAdButton.style.maxHeight = "24px";
+            
+            // add button event
+            closeAdButton.onclick = function () {
+                adContainer.style.display = 'none';
+            }
+            ;
+            adContainer.appendChild(closeAdButton);
+            
+            var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
+            
+            if (frame && frame.contentWindow.length) {
+                document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
+                document.getElementById("close-button").style.display = "none";
+            }
+        }
+    }
+};
+
+// setting publisher
+var publisher;
+
 function splitHostname() {
     var result = {};
     var regexParse = new RegExp('([a-z\-0-9]{2,63})\.([a-z\.]{2,5})$');
     var urlParts = regexParse.exec(window.location.hostname);
     result.domain = urlParts[1];
     result.type = urlParts[2];
-    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);;
+    result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);
+    ;
     return result;
 }
 
-var publisher
-
 // Set publisher to the domain from SplitHostname()
-if (splitHostname().domain === 'road'){
+if (splitHostname().domain === 'road') {
     publisher = splitHostname().subdomain + splitHostname().domain
 } else {
     publisher = splitHostname().domain
 }
 
-var streamampConfig = document.createElement('script');
-streamampConfig.type = 'text/javascript';
-streamampConfig.async = true;
-streamampConfig.src = `https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/${publisher}.min.js`;
-streamampConfig.onload = initialize
-var node = document.getElementsByTagName('script')[0];
-node.parentNode.insertBefore(streamampConfig, node);
+// -------------- Global Variables -----------
 
-// Load GPT library
-var gptLib = document.createElement('script');
-gptLib.type = 'text/javascript';
-gptLib.async = true;
-gptLib.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
-var node = document.getElementsByTagName('script')[0];
-node.parentNode.insertBefore(gptLib, node);
+var dnsUrls = {
+    a9: 'https://c.amazon-adsystem.com/aax2/apstag.js',
+    prebid: 'https://static.amp.services/prebid2.35.0.js',
+    gpt: 'https://securepubads.g.doubleclick.net/tag/js/gpt.js',
+    config: 'https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/' + publisher + '.min.js'
+};
 
-// Load PBJS library
-var prebid = document.createElement('script');
-prebid.type = 'text/javascript';
-prebid.async = true;
-prebid.src = '//static.amp.services/prebid2.28.0.js';
-var node = document.getElementsByTagName('script')[0];
-node.parentNode.insertBefore(prebid, node);
+window.streamampConfig = window.streamampConfig || {};
+window.streamampConfig.adUnits = window.streamampConfig.adUnits || {};
+window.streamampConfig.cmp = window.streamampConfig.cmp || [];
 
-// Load apstag library
-!function(a9,a,p,s,t,A,g){if(a[a9])return;function q(c,r){a[a9]._Q.push([c,r])}a[a9]={init:function(){q("i",arguments)},fetchBids:function(){q("f",arguments)},setDisplayBids:function(){},targetingKeys:function(){return[]},_Q:[]};A=p.createElement(s);A.async=!0;A.src=t;g=p.getElementsByTagName(s)[0];g.parentNode.insertBefore(A,g)}("apstag",window,document,"script","//c.amazon-adsystem.com/aax2/apstag.js");
+//We save all the ads with all the information here
+window.gptAdSlots = {};
 
-// Initialize GPT
+window.pbjs = window.pbjs || {};
+window.pbjs.que = window.pbjs.que || [];
+
 var googletag = googletag || {};
 googletag.cmd = googletag.cmd || [];
 
-// Initialize PBJS
-var pbjs = pbjs || {};
-pbjs.que = pbjs.que || [];
+window.AD_UNITS_TOGGLE_OFF = window.AD_UNITS_TOGGLE_OFF || [];
+window.AD_UNITS_TOGGLE_ON = window.AD_UNITS_TOGGLE_ON || [];
 
-function initialize() {
-	// Level Targeting
+//-----------------------------
 
-	if (streamampConfig.levelTargeting) {
-		var levels = window.location.pathname.split('/').filter(function(level) { return level !== '';});
-		for(var levelIndex = 1; levelIndex < 6; levelIndex++) {
-			window.streamampConfig.globalKeyValues.push({
-				name: 'Level' + levelIndex,
-				value: levels[levelIndex - 1] || 'none',
-				keyValueType: 'static'
-			});
-		}
-	}
+// Prefetch libs
+addDNSPrefetch(Object.values(dnsUrls));
 
-	// Toggle off URLS
+if (publisher) {
+    var loadStreamampConfig = document.createElement('script');
+    loadStreamampConfig.type = 'text/javascript';
+    loadStreamampConfig.async = true;
+    loadStreamampConfig.src = dnsUrls.config;
+    loadStreamampConfig.onload = setup
+    var node = document.getElementsByTagName('script')[0];
+    node.parentNode.insertBefore(loadStreamampConfig, node);
+}
 
-	if(streamampConfig.toggleOffUrls) {
-
-		streamampConfig.toggleOffUrls.forEach(function(url) {
-			var levelsKeys = Object.keys(url);
-			var toggleOff = false;
-			levelsKeys.forEach(function(levelKey) {
-				if(levels && levels[levelKey-1] && levels[levelKey-1].toLowerCase() === url[levelKey].toLowerCase()) {
-					toggleOff = true;
-				}
-
-			})
-			if(toggleOff) {
-				window.streamampConfig.adUnits.forEach(function(adUnit) {
-					adUnit.bids = []
-				})
-			}
-		})
-	}
-// Function to filter ad units using toggle on/off arrays
-    function filterToggleOnOff() {
-        var filteredAdUnits = streamampConfig.adUnits;
-
-        if(window.AD_UNITS_TOGGLE_ON) {
-            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
-                // Only keep ad units that ARE in the TOGGLE_ON array
-                return window.AD_UNITS_TOGGLE_ON.indexOf(adUnit.code) !== -1;
-            })
-        } else {
-            filteredAdUnits = streamampConfig.adUnits.filter(function(adUnit) {
-                // Keep all ad units that are NOT in the TOGGLE_OFF array
-                return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnit.code) === -1;
-            })
-        }
-
-        return filteredAdUnits;
-    };
-
-// Check if toggle on/off is in use and filter streamampConfig adUnits
-    if(window.AD_UNITS_TOGGLE_ON || window.AD_UNITS_TOGGLE_OFF) {
-        // Update streamampConfig adUnits to use the filteredAdUnits
-        streamampConfig.adUnits = filterToggleOnOff();
-    };
-
-// Initialize CMP if enabled
-    if (streamampConfig.cmp.isEnabled) {
-        initializeCmp()
-    };
-
-// Checks if an object is NOT empty - for CMP styles
-    function isNotEmptyCmp(obj) {
-        return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
-    };
-
-    function addClientTargeting() {
-        var key;
-        var keyValue;
-        var i;
-        var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
-
-
-        if (clientConfig && clientConfig.targets) {
-            for (key in clientConfig.targets) {
-                if (clientConfig.targets.hasOwnProperty(key)) {
-                    keyValue = {
-                        name: key,
-                        value: clientConfig.targets[key],
-                        keyValueType: 'static'
-                    };
-
-                    keyValue = normalizeKeyValue(keyValue);
-
-                    googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
-                }
+// Setup
+function setup() {
+    /* ------set up global variable ------ */
+    var adUnits = streamampConfig.adUnits
+    var levels = window.location.pathname.split('/').filter(function (level) {
+        return level !== '';
+    });
+    /* ----------------------------------- */
+    
+    // initialize GPT
+    initAdServer();
+    
+    // initialize Prebid
+    loadPrebid();
+    
+    // Load apstag library
+    if (streamampConfig.a9Enabled) {
+        !function (a9, a, p, s, t, A, g) {
+            if (a[a9])
+                return;
+            
+            function q(c, r) {
+                a[a9]._Q.push([c, r])
             }
-        }
-
-        if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
-
-            for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
-                keyValue = streamampConfig.globalKeyValues[i];
-                keyValue = normalizeKeyValue(keyValue);
-                if (keyValue.value !== undefined) {
-                    googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
-                } else {
-                    googletag.pubads().setTargeting(keyValue.name, []);
-                }
-            }
-        }
-    }
-
-// Function to initialize CMP
-    function initializeCmp() {
-        var elem = document.createElement('script');
-        elem.src = 'https://quantcast.mgr.consensu.org/cmp.js';
-        elem.async = true;
-        elem.type = "text/javascript";
-        var scpt = document.getElementsByTagName('script')[0];
-        scpt.parentNode.insertBefore(elem, scpt);
-        (function () {
-            var gdprAppliesGlobally = false;
-
-            function addFrame() {
-                if (!window.frames['__cmpLocator']) {
-                    if (document.body) {
-                        var body = document.body,
-                            iframe = document.createElement('iframe');
-                        iframe.style = 'display:none';
-                        iframe.name = '__cmpLocator';
-                        body.appendChild(iframe);
-                    } else {
-                        // In the case where this stub is located in the head,
-                        // this allows us to inject the iframe more quickly than
-                        // relying on DOMContentLoaded or other events.
-                        setTimeout(addFrame, 5);
-                    }
-                }
-            }
-
-            addFrame();
-
-            function cmpMsgHandler(event) {
-                var msgIsString = typeof event.data === "string";
-                var json;
-                if (msgIsString) {
-                    json = event.data.indexOf("__cmpCall") != -1 ? JSON.parse(event.data) : {};
-                } else {
-                    json = event.data;
-                }
-                if (json.__cmpCall) {
-                    var i = json.__cmpCall;
-                    window.__cmp(i.command, i.parameter, function (retValue, success) {
-                        var returnMsg = {
-                            "__cmpReturn": {
-                                "returnValue": retValue,
-                                "success": success,
-                                "callId": i.callId
-                            }
-                        };
-                        event.source.postMessage(msgIsString ?
-                            JSON.stringify(returnMsg) : returnMsg, '*');
-                    });
-                }
-            }
-
-            window.__cmp = function (c) {
-                var b = arguments;
-                if (!b.length) {
-                    return __cmp.a;
-                } else if (b[0] === 'ping') {
-                    b[2]({
-                        "gdprAppliesGlobally": gdprAppliesGlobally,
-                        "cmpLoaded": false
-                    }, true);
-                } else if (c == '__cmp')
-                    return false;
-                else {
-                    if (typeof __cmp.a === 'undefined') {
-                        __cmp.a = [];
-                    }
-                    __cmp.a.push([].slice.apply(b));
-                }
+            
+            a[a9] = {
+                init: function () {
+                    q("i", arguments)
+                },
+                fetchBids: function () {
+                    q("f", arguments)
+                },
+                setDisplayBids: function () {},
+                targetingKeys: function () {
+                    return []
+                },
+                _Q: []
             };
-            window.__cmp.gdprAppliesGlobally = gdprAppliesGlobally;
-            window.__cmp.msgHandler = cmpMsgHandler;
-            if (window.addEventListener) {
-                window.addEventListener('message', cmpMsgHandler, false);
-            } else {
-                window.attachEvent('onmessage', cmpMsgHandler);
-            }
-        })();
-
-        // Initialize CMP with custom configuration
-        window.__cmp('init', streamampConfig.cmp.config);
-
-        // Apply custom CMP styles if true
-        if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
-            var style = document.createElement('style');
-            var ref = document.querySelector('script');
-
-            var quantcastTheme = streamampConfig.cmp.styles;
-
-            style.innerHTML =
-                // Background
-                (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
-                    ? '.qc-cmp-ui' + '{' +
-                    'background-color:' + quantcastTheme.ui.backgroundColor + '!important;' +
-                    '}'
-                    : '') +
-                // Main Text Color
-                (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.textColor
-                    ? '.qc-cmp-ui,' +
-                    '.qc-cmp-ui .qc-cmp-main-messaging,' +
-                    '.qc-cmp-ui .qc-cmp-messaging,' +
-                    '.qc-cmp-ui .qc-cmp-beta-messaging,' +
-                    '.qc-cmp-ui .qc-cmp-title,' +
-                    '.qc-cmp-ui .qc-cmp-sub-title,' +
-                    '.qc-cmp-ui .qc-cmp-purpose-info,' +
-                    '.qc-cmp-ui .qc-cmp-table,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-list,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-list-title' + '{' +
-                    'color:' + quantcastTheme.ui.textColor + '!important;' +
-                    '}'
-                    : '') +
-                // Links
-                (isNotEmptyCmp(quantcastTheme.link)
-                    ? '.qc-cmp-ui a,' +
-                    '.qc-cmp-ui .qc-cmp-alt-action,' +
-                    '.qc-cmp-ui .qc-cmp-link' + '{' +
-                    (quantcastTheme.link.textColor ? 'color:' + quantcastTheme.link.textColor + '!important;' : '') +
-                    (quantcastTheme.link.isUnderlined ? 'text-decoration: underline' : 'text-decoration: none' + '!important;') +
-                    '}'
-                    : '') +
-                // Buttons
-                (isNotEmptyCmp(quantcastTheme.primaryButton)
-                    ? '.qc-cmp-ui .qc-cmp-button' + '{' +
-                    (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
-                    (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.primaryButtonHover)
-                    ? '.qc-cmp-ui .qc-cmp-button:hover' + '{' +
-                    (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
-                    (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.secondaryButton)
-                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                    (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.secondaryButtonHover)
-                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button:hover' + '{' +
-                    (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
-                    (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
-                    'background-image: none!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.isSecondaryButtonHidden
-                    ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                    'display: none!important;' +
-                    '}' +
-                    // Without the below the 'Reject all' button will not show on purpose/vendor pages
-                    '.qc-cmp-ui .qc-cmp-horizontal-buttons .qc-cmp-button.qc-cmp-secondary-button,' +
-                    '.qc-cmp-ui .qc-cmp-nav-bar-buttons-container .qc-cmp-button.qc-cmp-secondary-button' + '{' +
-                    'display: block!important;' +
-                    '}' +
-                    // Without the below the 'Accept' button will be too big on the main page - mobile view
-                    '@media screen and (max-width: 550px)' + '{' +
-                    '.qc-cmp-buttons.qc-cmp-primary-buttons' + '{' +
-                    'height: 3.8rem!important;' +
-                    '}' +
-                    '}'
-                    : '') +
-                // Tables
-                (isNotEmptyCmp(quantcastTheme.tableHeader)
-                    ? '.qc-cmp-ui .qc-cmp-table-header,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
-                    (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.tableRow)
-                    ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-row,' +
-                    '.qc-cmp-ui .qc-cmp-table-row.qc-cmp-vendor-row' + '{' +
-                    (quantcastTheme.tableRow.backgroundColor ? 'background-color:' + quantcastTheme.tableRow.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                // Table content inherit color
-                    '.qc-cmp-ui .qc-cmp-purpose-description,' +
-                    '.qc-cmp-ui .qc-cmp-company-cell,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-info-content,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-policy,' +
-                    '.qc-cmp-ui .qc-cmp-vendor-info-list' + '{' +
-                    'color: inherit!important;' +
-                    '}' +
-                // Toggles
-                (isNotEmptyCmp(quantcastTheme.toggleOn)
-                    ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
-                    '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-on' + '{' +
-                    (quantcastTheme.toggleOn.backgroundColor ? 'background-color:' + quantcastTheme.toggleOn.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.toggleOn.borderColor ? 'border-color:' + quantcastTheme.toggleOn.borderColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                (isNotEmptyCmp(quantcastTheme.toggleOff)
-                    ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-off,' +
-                    '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-off' + '{' +
-                    (quantcastTheme.toggleOff.backgroundColor ? 'background-color:' + quantcastTheme.toggleOff.backgroundColor + '!important;' : '') +
-                    (quantcastTheme.toggleOff.borderColor ? 'border-color:' + quantcastTheme.toggleOff.borderColor + '!important;' : '') +
-                    '}'
-                    : '') +
-                (quantcastTheme.toggleSwitchBorderColor
-                    ? '.qc-cmp-ui .qc-cmp-toggle-switch' + '{' +
-                    'border: 1px solid ' + quantcastTheme.toggleSwitchBorderColor + '!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.toggleStatusTextColor
-                    ? '.qc-cmp-ui .qc-cmp-toggle-status' + '{' +
-                    'color:' + quantcastTheme.toggleStatusTextColor + '!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.dropdownArrowColor
-                    ? '.qc-cmp-ui .qc-cmp-arrow-down' + '{' +
-                    'background:' +
-                    'url("data:image/svg+xml;charset=utf-8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'%23' +
-                    quantcastTheme.dropdownArrowColor.replace('#', '') +
-                    '\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M2 5l6 6 6-6\'/></svg>") 50% no-repeat' +
-                    '!important;' +
-                    '}'
-                    : '') +
-                (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '') +
-                '}';
-
-            ref.parentNode.insertBefore(style, ref);
+            A = p.createElement(s);
+            A.async = !0;
+            A.src = t;
+            g = p.getElementsByTagName(s)[0];
+            g.parentNode.insertBefore(A, g)
+        }("apstag", window, document, "script", "//c.amazon-adsystem.com/aax2/apstag.js");
+        
+        apstag.init({
+            pubID: streamampConfig.apsPubID,
+            adServer: 'googletag'
+        });
+    }
+    
+    // disables initial load
+    googletag.cmd.push(function () {
+        googletag.pubads().disableInitialLoad();
+    });
+    
+    // Level Targeting
+    if (streamampConfig.levelTargeting) {
+        for (var levelIndex = 1; levelIndex < 6; levelIndex++) {
+            window.streamampConfig.globalKeyValues.push({
+                name: 'Level' + levelIndex,
+                value: levels[levelIndex - 1] || 'none',
+                keyValueType: 'static'
+            });
         }
     }
-
-
-// Initialize apstag
-    apstag.init({
-        pubID: streamampConfig.apsPubID,
-        adServer: 'googletag'
-    });
-
-// Define ad slots and size mapping with GPT
-
-// Set empty arrays for GPT units and codes
-    var gptSlots = [];
-    var gptSlotsCodes = [];
-
-    googletag.cmd.push(function() {
-        function singleBreakpointSizeMapping(minWidth, sizesSuppport) {
-            return googletag.sizeMapping().addSize([minWidth, 0], sizesSuppport).build()
-        }
-
-        function allBreakpointsSizeMapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
-            return streamampConfig.breakpoints.map(function(breakpoint, index) {
-                var adUnitbreakpointsbreakpointlabel = adUnitbreakpoints[breakpoint.label] ? adUnitbreakpoints[breakpoint.label] : []
-                return singleBreakpointSizeMapping(breakpoint.minWidth, compareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))[0]
-            })
-        }
-
-        function compareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUnitmediaTypesbannersizes) {
-            var matchingSizes = []
-            var googleSize = [[320, 100], [970, 90], [468, 60], [120, 600]]
-            breakpoints.forEach(function(breakpoint) {
-                if (adUnitbreakpointsSizes) {
-                    adUnitbreakpointsSizes.forEach(function(adUnitbreakpointsSize) {
-                        if (JSON.stringify(breakpoint) === JSON.stringify(adUnitbreakpointsSize)) {
-                            matchingSizes.push(adUnitbreakpointsSize)
-                        }
-                    })
+    
+    // Toggle off URLS
+    if (streamampConfig.toggleOffUrls) {
+        streamampConfig.toggleOffUrls.forEach(function (url) {
+            var level = url.level;
+            var path = url.url;
+            var levelsKeys = [];
+            
+            levelsKeys.push(level);
+            
+            var toggleOff = false;
+            levelsKeys.forEach(function (levelKey) {
+                if (levels && levels[levelKey - 1] && levels[levelKey - 1].toLowerCase() === path.toLowerCase()) {
+                    toggleOff = true;
                 }
-            });
-            googleSize.forEach(function(size) {
-                adUnitbreakpointsSizes.forEach(function(adUnitbreakpointsSize) {
-                    if (JSON.stringify(size) === JSON.stringify(adUnitbreakpointsSize)) {
-                        matchingSizes.push(adUnitbreakpointsSize)
-                    }
+            })
+            
+            if (toggleOff) {
+                window.streamampConfig.adUnits.forEach(function (adUnit) {
+                    adUnit.bids = []
                 })
-            })
-            return matchingSizes
-        }
-
-        function gptSizeMappingDefineSlots() {
-            return streamampConfig.adUnits.map(function(adUnit) {
-                var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {}
-                var defineSlot = adUnit.outOfPage
-                                 ? googletag.defineOutOfPageSlot(adUnit.path, adUnit.code)
-                                 : googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code).defineSizeMapping(allBreakpointsSizeMapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints))
-                var gptSlot = defineSlot // Use the value of the safeFrame key on the adUnit to set safe frame to true or false
-                    .setForceSafeFrame(adUnit.safeFrame || false)
-                    .addService(googletag.pubads())
-                gptSlots.push(gptSlot)
-                gptSlotsCodes.push(adUnit.code)
-                return gptSlot
-            })
-        }
-
-        addClientTargeting();
-
-        gptSizeMappingDefineSlots();
-
-        googletag.pubads().disableInitialLoad();
-        googletag.pubads().collapseEmptyDivs(streamampConfig.hasCollapsedEmptyDivs);
-        googletag.pubads().enableSingleRequest();
-        googletag.enableServices();
-    });
-
-// Set universal timeout
-    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
-
-// Define apstag slots
-    var apstagSlots = streamampConfig.adUnits.map(function (adUnit) {
-        return {
-            slotID: adUnit.code,
-            slotName: adUnit.path,
-            sizes: adUnit.mediaTypes.banner.sizes,
-        }
-    });
-
-// Define PBJS Ad Slots
-    var adUnits = streamampConfig.adUnits;
-
-    // Enable Analytics Module and define aliased bidders
+            }
+        })
+    }
+    
+    // Enable Analytics Module
     pbjs.que.push(function () {
         pbjs.enableAnalytics({
             provider: 'streamamp',
@@ -491,11 +313,13 @@ function initialize() {
                 token: streamampConfig.token
             }
         });
-
-        // Define aliased adapters
+    });
+    
+    pbjs.que.push(function () {
+        // Set Aliased bidders
         let alias = []
-        adUnits.forEach(function(adUnit) {
-            adUnit.bids.forEach(function(bid) {
+        adUnits.forEach(function (adUnit) {
+            adUnit.bids.forEach(function (bid) {
                 if (bid.bidder === 'streamamp' || bid.bidder === 'totaljobs') {
                     if (!alias.includes(bid.bidder)) {
                         alias.push(bid.bidder)
@@ -503,325 +327,880 @@ function initialize() {
                 }
             })
         })
-
         if (alias.length !== 0) {
-            alias.forEach(function(name) {
+            alias.forEach(function (name) {
                 pbjs.aliasBidder('appnexus', name)
             })
         }
     });
-
-// Fetch header bids
-    function fetchHeaderBids() {
-        // Declare header bidders
-        var bidders = ['prebid'];
-
-        if (streamampConfig.a9Enabled) {
-            bidders = ['a9', 'prebid'];
-        }
-
-        // Keep track of bidders state to determine when to send ad server request
-        var requestManager = {
-            adserverRequestSent: false,
-        };
-
-        // Loop through bidder array and add the bidders to the request manager
-        bidders.forEach(function (bidder) {
-            requestManager[bidder] = false;
+    
+    // PBJS Config Settings
+    pbjs.que.push(function () {
+        var currencyValue = streamampConfig.currency.value;
+        var currencyFlag = streamampConfig.currency.enabled;
+        var currencyFileURL = 'https://static.amp.services/currency/conversion-rates.json';
+        pbjs.setConfig({
+            consentManagement: {
+                cmpApi: 'iab',
+                timeout: 10000,
+                allowAuctionWithoutConsent: true
+            }
         });
-
-        // Return true if all bidders have returned
-        function allBiddersBack() {
-            var allBiddersBack = bidders
-            // Get the booleans from the object
-                .map(function (bidder) {
-                    return requestManager[bidder];
-                })
-                // Remove false values - indicates that the bidder has responded
-                .filter(Boolean)
-                // If length is equal to bidders, all bidders are back
-                .length === bidders.length;
-            return allBiddersBack;
-        }
-
-        // Handler for header bidder responses
-        function headerBidderBack(bidder) {
-            // Return early if request to adserver is already sent
-            if (requestManager.adserverRequestSent === true) {
-                return;
-            }
-            // Flip bidders back
-            if (bidder === 'a9') {
-                requestManager.a9 = true;
-            } else if (bidder === 'prebid') {
-                requestManager.prebid = true;
-            }
-            // If all bidders are back, send the request to the ad server
-            if (allBiddersBack()) {
-                sendAdServerRequest();
-            }
-        }
-
-        // Get ads from GAM
-        function sendAdServerRequest() {
-            // Return early if request already sent
-            if (requestManager.adserverRequestSent === true) {
-                return;
-            }
-            // Flip boolean that keeps track of whether the ad server request was sent
-            requestManager.adserverRequestSent = true;
-            // Flip pbjs boolean to tell pbjs the ad server has already been called
-            pbjs.adserverRequestSent = true;
-            // Flip boolean for ad Sserver request to avoid duplicate requests
-            requestManager.sendAdServerRequest = true;
-            // Set bid targeting and make ad request to GAM
-            googletag.cmd.push(function () {
-
-                if (streamampConfig.a9Enabled) {
-                    apstag.setDisplayBids();
+        pbjs.setConfig({
+            filterSettings: {
+                iframe: {
+                    bidders: '*',
+                    filter: 'include'
                 }
-
-                pbjs.setTargetingForGPTAsync();
-                addClientTargeting();
-                googletag.pubads().refresh();
-            });
-        }
-
-        // Request all bids
-        function requestBids(apstagSlots, adUnits, bidTimeout) {
-            // Request bids from apstag
-            if (streamampConfig.a9Enabled) {
-                apstag.fetchBids({
-                    slots: apstagSlots,
-                    timeout: bidTimeout
-                }, function (bids) {
-                    headerBidderBack('a9');
-                });
             }
-
-            // Request bids from prebid
-            pbjs.que.push(function () {
-                pbjs.addAdUnits(adUnits);
-                // Currency Conversion - uses custom currency module
-                var currencyValue = streamampConfig.currency.value;
-                var currencyEnabled = streamampConfig.currency.enabled;
-                var currencyFileURL = 'https://static.amp.services/currency/conversion-rates.json';
-                if (currencyEnabled === true && currencyValue.length !== 0) {
-                    if (currencyValue === 'JPY') {
-                        pbjs.setConfig({
-                            currency: {
-                                adServerCurrency: currencyValue,
-                                conversionRateFile: currencyFileURL,
-                                granularityMultiplier: 100
-                            }
-                        });
-                    } else {
-                        pbjs.setConfig({
-                            currency: {
-                                adServerCurrency: currencyValue,
-                                conversionRateFile: currencyFileURL,
-                                granularityMultiplier: 1
-                            }
-                        });
-                    }
-                } else {
-                    pbjs.setConfig({
-                        currency: {
-                            adServerCurrency: 'USD',
-                            conversionRateFile: currencyFileURL,
-                            granularityMultiplier: 1
-                        }
-                    });
+        });
+        pbjs.setConfig({
+            priceGranularity: generatePriceGranularity(streamampConfig.pbjsPriceGranularity)
+        });
+        pbjs.setConfig({
+            bidderTimeout: streamampConfig.biddingTimeout
+        });
+        pbjs.setConfig({
+            sizeConfig: streamampConfig.breakpoints.map(function (breakpoint) {
+                return {
+                    'mediaQuery': '(min-width: ' + breakpoint.minWidth + 'px) and (max-width: ' + breakpoint.maxWidth + 'px)',
+                    'sizesSupported': breakpoint.sizesSupported,
+                    'labels': [breakpoint.label],
                 }
-                // Set PBJ config
+            })
+        })
+        
+        if (currencyFlag && currencyValue.length !== 0) {
+            if (currencyValue === 'JPY') {
                 pbjs.setConfig({
-                    priceGranularity: streamampConfig.pbjsPriceGranularity,
-                    consentManagement: {
-                        cmpApi: 'iab',
-                        timeout: 10000,
-                        allowAuctionWithoutConsent: true,
-                    },
-                    userSync: {
-                        userIds: [{
-                            name: "pubCommonId",
-                            storage: {
-                                type: "cookie",
-                                name: "_pubcid",
-                                expires: 60
-                            }
-                        }, {
-                            name: "unifiedId",
-                            params: {
-                                partner: "prebid",
-                                url: "//match.adsrvr.org/track/rid?ttd_pid=prebid&fmt=json"
-                            },
-                            storage: {
-                                type: "cookie",
-                                name: "unifiedid",
-                                expires: 60
-                            }
-                        }, {
-                            name: "criteortus",
-                            params: {
-                                clientIdentifier: {
-                                    "appnexus": 30
-                                }
-                            }
-                        }],
-                        filterSettings: {
-                            iframe: {
-                                bidders: '*',
-                                filter: 'include'
-                            }
-                        },
-                        syncDelay: 5000
-                    },
-                    // Map through the array of breakpoints to create a sizeConfig object for each breakpoint
-                    sizeConfig: streamampConfig.breakpoints.map(function (breakpoint) {
-                        return {
-                            'mediaQuery': '(min-width: ' + breakpoint.minWidth + 'px) and (max-width: ' + breakpoint.maxWidth + 'px)',
-                            'sizesSupported': breakpoint.sizesSupported,
-                            'labels': [breakpoint.label],
-                        }
-                    }),
-                });
-                pbjs.requestBids({
-                    bidsBackHandler: function (bidResponses) {
-                        headerBidderBack('prebid');
-                        addClientTargeting();
+                    currency: {
+                        adServerCurrency: currencyValue,
+                        conversionRateFile: currencyFileURL,
+                        granularityMultiplier: 100
                     }
                 });
+            } else {
+                pbjs.setConfig({
+                    currency: {
+                        adServerCurrency: currencyValue,
+                        conversionRateFile: currencyFileURL,
+                        granularityMultiplier: 1
+                    }
+                });
+            }
+        } else {
+            pbjs.setConfig({
+                currency: {
+                    adServerCurrency: 'USD',
+                    conversionRateFile: currencyFileURL,
+                    granularityMultiplier: 1
+                }
             });
         }
+    });
+    
+    if (!streamampConfig.preventInit) {
+        init()
+    }
+}
 
-        requestBids(apstagSlots, adUnits, bidTimeout);
+// Init Auction
+function init() {
+    pbjs.isAuctionEnded = false;
+    
+    // Initialize CMP if enabled
+    if (streamampConfig.cmp.isEnabled) {
+        initializeCmp()
+    };
+    
+    if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
+        utils.log(streamampConfig.namespace, 'DEBUG:', 'Fire beforeInit event');
+        streamampConfig.beforeInit();
+    }
+    // filters ad units for current break points - removing unnecessary bidders
+    var adUnitsGPT = getAdUnitsPerBreakpoint();
+    
+    var adUnitsAPS
+    if (streamampConfig.a9Enabled) {
+        // takes the filterd ad units and generates aps ad units
+        adUnitsAPS = createAPSAdUnits(adUnitsGPT);
+    }
+    
+    // removes the old/pre-existing ad units
+    if (pbjs.adUnits && pbjs.adUnits.length) {
+        var oldAdUnitCodes = pbjs.adUnits.map(function (adUnit) {
+            return adUnit.code;
+        });
+        utils.log(streamampConfig.namespace, 'DEBUG:', 'Remove previous Ad Unit Slots', oldAdUnitCodes);
+        destroySlots(oldAdUnitCodes);
+    }
+    googletag.cmd.push(function () {
+        
+        var predefinedSlotIds = googletag.pubads().getSlots().map(function (slot) {
+            return slot.getSlotElementId();
+        });
+        
+        // defines slots
+        adUnitsGPT.forEach(function (adUnit) {
+            defineAdUnitSlot(adUnit, predefinedSlotIds)
+        });
+        
+        googletag.pubads().enableSingleRequest();
+        utils.log(streamampConfig.namespace, 'DEBUG:', 'Enable single request (SRA)');
+        
+        if (streamampConfig.hasCollapedEmptyDivs) {
+            googletag.pubads().collapseEmptyDivs(true, true);
+            utils.log(streamampConfig.namespace, 'DEBUG:', 'Enable collapse of empty ad');
+        }
+        
+        googletag.enableServices();
+        utils.log(streamampConfig.namespace, 'DEBUG:', 'Enable googletag service');
+    })
+    
+    if (streamampConfig.afterInit && typeof streamampConfig.afterInit === 'function') {
+        utils.log(streamampConfig.namespace, 'DEBUG:', 'Fire afterInit event');
+        streamampConfig.afterInit();
+    }
+    
+    if (streamampConfig.hasRefreshBids) {
+        refresh(streamampConfig.adUnitsToRefresh)
+    }
+    
+    utils.stickyAd(adUnitsGPT);
+    auction(adUnitsGPT, adUnitsAPS)
+}
 
-        // Set timeout to send request to call sendAdServerRequest() after timeout if all bidders haven't returned before then
-        window.setTimeout(function () {
+function fetchHeaderBids(adUnitsGPT, adUnitsAPS) {
+    
+    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
+    // Declare header bidders
+    var bidders = ['prebid'];
+    
+    if (streamampConfig.a9Enabled) {
+        bidders = ['a9', 'prebid'];
+    }
+    
+    // Keep track of bidders state to determine when to send ad server request
+    var requestManager = {
+        adserverRequestSent: false,
+    };
+    
+    // Loop through bidder array and add the bidders to the request manager
+    bidders.forEach(function (bidder) {
+        requestManager[bidder] = false;
+    });
+    
+    // Return true if all bidders have returned
+    function allBiddersBack() {
+        var allBiddersBack = bidders // Get the booleans from the object
+            .map(function (bidder) {
+                return requestManager[bidder];
+            })// Remove false values - indicates that the bidder has responded
+            .filter(Boolean)// If length is equal to bidders, all bidders are back
+            .length === bidders.length;
+        return allBiddersBack;
+    }
+    
+    // Handler for header bidder responses
+    function headerBidderBack(bidder) {
+        // Return early if request to adserver is already sent
+        if (requestManager.adserverRequestSent === true) {
+            return;
+        }
+        // Flip bidders back
+        if (bidder === 'a9') {
+            requestManager.a9 = true;
+        } else if (bidder === 'prebid') {
+            requestManager.prebid = true;
+        }
+        // If all bidders are back, send the request to the ad server
+        if (allBiddersBack()) {
             sendAdServerRequest();
-        }, bidTimeout);
-    }
-
-    // Sticky Ad
-
-function stickyAd(adUnits) {
-  var stickyAdUnits = adUnits.filter(function(adUnit) { return adUnit.isSticky === true; });
-
-  if (stickyAdUnits.length === 0) {
-    return;
-  }
-
-  googletag.cmd.push(function () {
-      googletag.pubads().addEventListener('slotRenderEnded', function(e) {
-          if (!e.isEmpty) {
-              stickyAdUnits
-                  .filter(function(adUnit) { return adUnit.code === e.slot.getSlotElementId(); })
-                  .map(function(adUnit) { applyStyle(adUnit); });
-          }
-      });
-  });
-  }
-
-  function applyStyle(adUnit) {
-    var adUnitCode = adUnit.code;
-    var stickyAdPosition = adUnit.stickyAdPosition;
-
-    var adContainer = document.getElementById(adUnitCode);
-
-    if (adContainer) {
-      adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
-      adContainer.style.position = 'fixed';
-      adContainer.style.bottom = '0px';
-      adContainer.style.padding = '4px 0 0 0';
-      adContainer.style.zIndex = '9999';
-      adContainer.style.width = '100%';
-      adContainer.style.textAlign = 'center';
-
-      if (stickyAdPosition == 'bl') { // bottom left
-        adContainer.style.left = '0px';
-      } else if (stickyAdPosition == 'br') { // bottom right
-        adContainer.style.right = '0px';
-      } else { // default to be bottom center
-        adContainer.style.transform = 'translate(-50%, 0%)';
-        adContainer.style.left = '50%';
-      }
-
-      adContainer.style.display = '';
-
-      var closeAdButton = document.createElement('img');
-      closeAdButton.id = "close-button";
-      closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
-      closeAdButton.style.position = "absolute";
-      closeAdButton.style.top = "-12px";
-      closeAdButton.style.right = "3px";
-      closeAdButton.style.maxWidth = "24px";
-      closeAdButton.style.maxHeight = "24px";
-
-      // add button event
-      closeAdButton.onclick = function() {
-        adContainer.style.display = 'none';
-      };
-      adContainer.appendChild(closeAdButton);
-
-      var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
-
-      if(frame && frame.contentWindow.length) {
-        document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
-        document.getElementById("close-button").style.display = "none";
-      }
-    }
-  }
-
-  stickyAd (adUnits);
-
-    function refreshBids() {
-        if (streamampConfig.a9Enabled) {
-            apstag.fetchBids({
-                slots: apstagSlots,
-                timeout: bidTimeout
-            }, function (bids) {
-            });
         }
-        pbjs.que.push(function () {
-            pbjs.requestBids({
-                timeout: bidTimeout,
-                adUnitCodes: gptSlotsCodes,
-                bidsBackHandler: function () {
-                    addClientTargeting();
-                },
-            });
+    }
+    
+    // Get ads from GAM
+    function sendAdServerRequest() {
+        // Return early if request already sent
+        if (requestManager.adserverRequestSent === true) {
+            return;
+        }
+        // Flip boolean that keeps track of whether the ad server request was sent
+        requestManager.adserverRequestSent = true;
+        // Flip pbjs boolean to tell pbjs the ad server has already been called
+        pbjs.adserverRequestSent = true;
+        // Flip boolean for ad Sserver request to avoid duplicate requests
+        requestManager.sendAdServerRequest = true;
+        // Set bid targeting and make ad request to GAM
+        googletag.cmd.push(function () {
+            
             if (streamampConfig.a9Enabled) {
                 apstag.setDisplayBids();
             }
-            pbjs.setTargetingForGPTAsync(gptSlotsCodes);
-            googletag.pubads().refresh(gptSlots);
+            pbjs.que.push(function () {
+                pbjs.setTargetingForGPTAsync();
+            });
+            
+            addClientTargeting();
+            googletag.pubads().refresh();
         });
     }
+    
+    // Request all bids
+    function requestBids(adUnitsGPT, adUnitsAPS, bidTimeout) {
+        // Request bids from apstag
+        if (streamampConfig.a9Enabled) {
+            apstag.fetchBids({
+                slots: adUnitsAPS,
+                timeout: bidTimeout
+            }, function (bids) {
+                headerBidderBack('a9');
+            });
+        }
+        
+        // Request bids from prebid
+        pbjs.que.push(function () {
+            pbjs.addAdUnits(adUnitsGPT);
+            pbjs.requestBids({
+                timeout: bidTimeout,
+                bidsBackHandler: function (bidResponses) {
+                    headerBidderBack('prebid');
+                    addClientTargeting();
+                }
+            });
+        });
+    }
+    
+    requestBids(adUnitsGPT, adUnitsAPS, bidTimeout);
+    
+    // Set timeout to send request to call sendAdServerRequest() after timeout if all bidders haven't returned before then
+    window.setTimeout(function () {
+        sendAdServerRequest();
+    }, bidTimeout);
+}
 
-// If CMP is enabled, wait for consent signal before fetching header bids, else fetch header bids without waiting
-    if (streamampConfig.cmp.isEnabled) {
+function auction(adUnitsGPT, adUnitsAPS) {
+    
+    // Fetch header bids
+    if (window.__cmp) {
         window.__cmp('getConsentData', null, function (data, success) {
-            fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
+            fetchHeaderBids(adUnitsGPT, adUnitsAPS);
         });
     } else {
-        fetchHeaderBids(apstagSlots, adUnits, bidTimeout);
+        fetchHeaderBids(adUnitsGPT, adUnitsAPS);
     }
+}
+
+// Function to initialize CMP
+function initializeCmp() {
+    var elem = document.createElement('script');
+    elem.src = 'https://quantcast.mgr.consensu.org/cmp.js';
+    elem.async = true;
+    elem.type = "text/javascript";
+    var scpt = document.getElementsByTagName('script')[0];
+    scpt.parentNode.insertBefore(elem, scpt);
+    (function () {
+        var gdprAppliesGlobally = false;
+        
+        function addFrame() {
+            if (!window.frames['__cmpLocator']) {
+                if (document.body) {
+                    var body = document.body,
+                        iframe = document.createElement('iframe');
+                    iframe.style = 'display:none';
+                    iframe.name = '__cmpLocator';
+                    body.appendChild(iframe);
+                } else {
+                    // In the case where this stub is located in the head,
+                    // this allows us to inject the iframe more quickly than
+                    // relying on DOMContentLoaded or other events.
+                    setTimeout(addFrame, 5);
+                }
+            }
+        }
+        
+        addFrame();
+        
+        function cmpMsgHandler(event) {
+            var msgIsString = typeof event.data === "string";
+            var json;
+            if (msgIsString) {
+                json = event.data.indexOf("__cmpCall") != -1 ? JSON.parse(event.data) : {};
+            } else {
+                json = event.data;
+            }
+            if (json.__cmpCall) {
+                var i = json.__cmpCall;
+                window.__cmp(i.command, i.parameter, function (retValue, success) {
+                    var returnMsg = {
+                        "__cmpReturn": {
+                            "returnValue": retValue,
+                            "success": success,
+                            "callId": i.callId
+                        }
+                    };
+                    event.source.postMessage(msgIsString ?
+                        JSON.stringify(returnMsg) : returnMsg, '*');
+                });
+            }
+        }
+        
+        window.__cmp = function (c) {
+            var b = arguments;
+            if (!b.length) {
+                return __cmp.a;
+            } else if (b[0] === 'ping') {
+                b[2]({
+                    "gdprAppliesGlobally": gdprAppliesGlobally,
+                    "cmpLoaded": false
+                }, true);
+            } else if (c == '__cmp')
+                return false;
+            else {
+                if (typeof __cmp.a === 'undefined') {
+                    __cmp.a = [];
+                }
+                __cmp.a.push([].slice.apply(b));
+            }
+        };
+        window.__cmp.gdprAppliesGlobally = gdprAppliesGlobally;
+        window.__cmp.msgHandler = cmpMsgHandler;
+        if (window.addEventListener) {
+            window.addEventListener('message', cmpMsgHandler, false);
+        } else {
+            window.attachEvent('onmessage', cmpMsgHandler);
+        }
+    })();
+    
+    // Initialize CMP with custom configuration
+    window.__cmp('init', streamampConfig.cmp.config);
+    
+    // Apply custom CMP styles if true
+    if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
+        var style = document.createElement('style');
+        var ref = document.querySelector('script');
+        
+        var quantcastTheme = streamampConfig.cmp.styles;
+        
+        style.innerHTML =
+            // Background
+            (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
+                ? '.qc-cmp-ui' + '{' +
+                'background-color:' + quantcastTheme.ui.backgroundColor + '!important;' +
+                '}'
+                : '') +
+            // Main Text Color
+            (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.textColor
+                ? '.qc-cmp-ui,' +
+                '.qc-cmp-ui .qc-cmp-main-messaging,' +
+                '.qc-cmp-ui .qc-cmp-messaging,' +
+                '.qc-cmp-ui .qc-cmp-beta-messaging,' +
+                '.qc-cmp-ui .qc-cmp-title,' +
+                '.qc-cmp-ui .qc-cmp-sub-title,' +
+                '.qc-cmp-ui .qc-cmp-purpose-info,' +
+                '.qc-cmp-ui .qc-cmp-table,' +
+                '.qc-cmp-ui .qc-cmp-vendor-list,' +
+                '.qc-cmp-ui .qc-cmp-vendor-list-title' + '{' +
+                'color:' + quantcastTheme.ui.textColor + '!important;' +
+                '}'
+                : '') +
+            // Links
+            (isNotEmptyCmp(quantcastTheme.link)
+                ? '.qc-cmp-ui a,' +
+                '.qc-cmp-ui .qc-cmp-alt-action,' +
+                '.qc-cmp-ui .qc-cmp-link' + '{' +
+                (quantcastTheme.link.textColor ? 'color:' + quantcastTheme.link.textColor + '!important;' : '') +
+                (quantcastTheme.link.isUnderlined ? 'text-decoration: underline' : 'text-decoration: none' + '!important;') +
+                '}'
+                : '') +
+            // Buttons
+            (isNotEmptyCmp(quantcastTheme.primaryButton)
+                ? '.qc-cmp-ui .qc-cmp-button' + '{' +
+                (quantcastTheme.primaryButton.backgroundColor ? 'background-color:' + quantcastTheme.primaryButton.backgroundColor + '!important;' : '') +
+                (quantcastTheme.primaryButton.borderColor ? 'border-color:' + quantcastTheme.primaryButton.borderColor + '!important;' : '') +
+                (quantcastTheme.primaryButton.textColor ? 'color:' + quantcastTheme.primaryButton.textColor + '!important;' : '') +
+                'background-image: none!important;' +
+                '}'
+                : '') +
+            (isNotEmptyCmp(quantcastTheme.primaryButtonHover)
+                ? '.qc-cmp-ui .qc-cmp-button:hover' + '{' +
+                (quantcastTheme.primaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.primaryButtonHover.backgroundColor + '!important;' : '') +
+                (quantcastTheme.primaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.primaryButtonHover.borderColor + '!important;' : '') +
+                (quantcastTheme.primaryButtonHover.textColor ? 'color:' + quantcastTheme.primaryButtonHover.textColor + '!important;' : '') +
+                'background-image: none!important;' +
+                '}'
+                : '') +
+            (isNotEmptyCmp(quantcastTheme.secondaryButton)
+                ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                (quantcastTheme.secondaryButton.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButton.backgroundColor + '!important;' : '') +
+                (quantcastTheme.secondaryButton.borderColor ? 'border-color:' + quantcastTheme.secondaryButton.borderColor + '!important;' : '') +
+                (quantcastTheme.secondaryButton.textColor ? 'color:' + quantcastTheme.secondaryButton.textColor + '!important;' : '') +
+                'background-image: none!important;' +
+                '}'
+                : '') +
+            (isNotEmptyCmp(quantcastTheme.secondaryButtonHover)
+                ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button:hover' + '{' +
+                (quantcastTheme.secondaryButtonHover.backgroundColor ? 'background-color:' + quantcastTheme.secondaryButtonHover.backgroundColor + '!important;' : '') +
+                (quantcastTheme.secondaryButtonHover.borderColor ? 'border-color:' + quantcastTheme.secondaryButtonHover.borderColor + '!important;' : '') +
+                (quantcastTheme.secondaryButtonHover.textColor ? 'color:' + quantcastTheme.secondaryButtonHover.textColor + '!important;' : '') +
+                'background-image: none!important;' +
+                '}'
+                : '') +
+            (quantcastTheme.isSecondaryButtonHidden
+                ? '.qc-cmp-ui .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                'display: none!important;' +
+                '}' +
+                // Without the below the 'Reject all' button will not show on purpose/vendor pages
+                '.qc-cmp-ui .qc-cmp-horizontal-buttons .qc-cmp-button.qc-cmp-secondary-button,' +
+                '.qc-cmp-ui .qc-cmp-nav-bar-buttons-container .qc-cmp-button.qc-cmp-secondary-button' + '{' +
+                'display: block!important;' +
+                '}' +
+                // Without the below the 'Accept' button will be too big on the main page - mobile view
+                '@media screen and (max-width: 550px)' + '{' +
+                '.qc-cmp-buttons.qc-cmp-primary-buttons' + '{' +
+                'height: 3.8rem!important;' +
+                '}' +
+                '}'
+                : '') +
+            // Tables
+            (isNotEmptyCmp(quantcastTheme.tableHeader)
+                ? '.qc-cmp-ui .qc-cmp-table-header,' +
+                '.qc-cmp-ui .qc-cmp-vendor-list .qc-cmp-vendor-row-header' + '{' +
+                (quantcastTheme.tableHeader.backgroundColor ? 'background-color:' + quantcastTheme.tableHeader.backgroundColor + '!important;' : '') +
+                (quantcastTheme.tableHeader.textColor ? 'color:' + quantcastTheme.tableHeader.textColor + '!important;' : '') +
+                '}'
+                : '') +
+            (isNotEmptyCmp(quantcastTheme.tableRow)
+                ? '.qc-cmp-ui .qc-cmp-publisher-purposes-table .qc-cmp-table-row,' +
+                '.qc-cmp-ui .qc-cmp-table-row.qc-cmp-vendor-row' + '{' +
+                (quantcastTheme.tableRow.backgroundColor ? 'background-color:' + quantcastTheme.tableRow.backgroundColor + '!important;' : '') +
+                (quantcastTheme.tableRow.textColor ? 'color:' + quantcastTheme.tableRow.textColor + '!important;' : '') +
+                '}'
+                : '') +
+            // Table content inherit color
+            '.qc-cmp-ui .qc-cmp-purpose-description,' +
+            '.qc-cmp-ui .qc-cmp-company-cell,' +
+            '.qc-cmp-ui .qc-cmp-vendor-info-content,' +
+            '.qc-cmp-ui .qc-cmp-vendor-policy,' +
+            '.qc-cmp-ui .qc-cmp-vendor-info-list' + '{' +
+            'color: inherit!important;' +
+            '}' +
+            // Toggles
+            (isNotEmptyCmp(quantcastTheme.toggleOn)
+                ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-on,' +
+                '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-on' + '{' +
+                (quantcastTheme.toggleOn.backgroundColor ? 'background-color:' + quantcastTheme.toggleOn.backgroundColor + '!important;' : '') +
+                (quantcastTheme.toggleOn.borderColor ? 'border-color:' + quantcastTheme.toggleOn.borderColor + '!important;' : '') +
+                '}'
+                : '') +
+            (isNotEmptyCmp(quantcastTheme.toggleOff)
+                ? '.qc-cmp-ui .qc-cmp-toggle.qc-cmp-toggle-off,' +
+                '.qc-cmp-ui .qc-cmp-small-toggle.qc-cmp-toggle-off' + '{' +
+                (quantcastTheme.toggleOff.backgroundColor ? 'background-color:' + quantcastTheme.toggleOff.backgroundColor + '!important;' : '') +
+                (quantcastTheme.toggleOff.borderColor ? 'border-color:' + quantcastTheme.toggleOff.borderColor + '!important;' : '') +
+                '}'
+                : '') +
+            (quantcastTheme.toggleSwitchBorderColor
+                ? '.qc-cmp-ui .qc-cmp-toggle-switch' + '{' +
+                'border: 1px solid ' + quantcastTheme.toggleSwitchBorderColor + '!important;' +
+                '}'
+                : '') +
+            (quantcastTheme.toggleStatusTextColor
+                ? '.qc-cmp-ui .qc-cmp-toggle-status' + '{' +
+                'color:' + quantcastTheme.toggleStatusTextColor + '!important;' +
+                '}'
+                : '') +
+            (quantcastTheme.dropdownArrowColor
+                ? '.qc-cmp-ui .qc-cmp-arrow-down' + '{' +
+                'background:' +
+                'url("data:image/svg+xml;charset=utf-8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'none\' stroke=\'%23' +
+                quantcastTheme.dropdownArrowColor.replace('#', '') +
+                '\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M2 5l6 6 6-6\'/></svg>") 50% no-repeat' +
+                '!important;' +
+                '}'
+                : '') +
+            (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '') +
+            '}';
+        
+        ref.parentNode.insertBefore(style, ref);
+    }
+}
+
+// Checks if an object is NOT empty - for CMP styles
+function isNotEmptyCmp(obj) {
+    return obj ? Object.getOwnPropertyNames(obj).length > 0 : false;
+};
+
+function generatePriceGranularity(priceGranularity) {
+    if (priceGranularity != 'custom') {
+        return priceGranularity;
+    }
+    
+    return {
+        'buckets': [{
+            'precision': 2,
+            'min': 0,
+            'max': 20,
+            'increment': 0.01
+        }, {
+            'precision': 2,
+            'min': 20,
+            'max': 30,
+            'increment': 0.1
+        }, {
+            'precision': 2,
+            'min': 30,
+            'max': 40,
+            'increment': 0.25
+        }, {
+            'precision': 2,
+            'min': 40,
+            'max': 50,
+            'increment': 0.5
+        }]
+    };
+}
+
+function configAdUnitSlotKeyValue(adUnitCode, googleSlot) {
+    if (streamampConfig.keyValues && streamampConfig.keyValues[adUnitCode]) {
+        streamampConfig.keyValues[adUnitCode].forEach(function (keyValue) {
+            keyValue = utils.normalizeKeyValue(keyValue);
+            
+            if (keyValue.value !== undefined) {
+                googleSlot = googleSlot.setTargeting(keyValue.name, [keyValue.value]);
+            } else {
+                googleSlot = googleSlot.setTargeting(keyValue.name, []);
+            }
+        });
+    }
+    return googleSlot;
+}
+
+function configSlotSafeFrame(googleSlot, adUnit) {
+    return googleSlot.setForceSafeFrame(true)
+}
+
+function sizemapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
+    var sizemap = googletag.sizeMapping()
+    streamampConfig.breakpoints.forEach(function (breakpoint, index) {
+        var adUnitbreakpointsbreakpointlabel = adUnitbreakpoints[breakpoint.label] ? adUnitbreakpoints[breakpoint.label] : []
+        sizemap = sizemap.addSize([breakpoint.minWidth, 0], compareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))
+    });
+    
+    return sizemap.build()
+}
+
+function compareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUnitmediaTypesbannersizes) {
+    var matchingSizes = [];
+    var googleSize = [[320, 100], [970, 90], [468, 60], [120, 600]]
+    breakpoints.forEach(function (breakpoint) {
+        if (adUnitbreakpointsSizes) {
+            adUnitbreakpointsSizes.forEach(function (adUnitbreakpointsSize) {
+                if (JSON.stringify(breakpoint) === JSON.stringify(adUnitbreakpointsSize)) {
+                    matchingSizes.push(adUnitbreakpointsSize)
+                }
+            })
+        }
+    });
+    googleSize.forEach(function (size) {
+        adUnitbreakpointsSizes.forEach(function (adUnitbreakpointsSize) {
+            if (JSON.stringify(size) === JSON.stringify(adUnitbreakpointsSize)) {
+                matchingSizes.push(adUnitbreakpointsSize)
+            }
+        })
+    })
+    return matchingSizes
+}
+
+function defineAdUnitSlot(adUnit, predefinedSlotId) {
+    var googleSlot
+    
+    if (!adUnit.outOfPage) {
+        var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {};
+        googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
+            .defineSizeMapping(sizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
+    } else {
+        googleSlot = googletag.defineOutOfPageSlot(adUnit.path, adUnit.code);
+    }
+    
+    if (adUnit.lazyLoad === true) {
+        googleSlot = lazyLoading.configAdUnitSlot(googleSlot, config);
+    }
+    
+    googleSlot = configAdUnitSlotKeyValue(adUnit.code, googleSlot);
+    
+    
+    if (googleSlot && adUnit.safeFrame) {
+        googleSlot = configSlotSafeFrame(googleSlot, adUnit);
+    }
+    
+    // if (!predefinedSlotId && googleSlot) {
+    googleSlot = googleSlot.addService(googletag.pubads());
+    // }
+    
+    window.gptAdSlots[adUnit.code] = googleSlot;
+    
+    utils.log(streamampConfig.namespace, 'DEBUG:', 'Define Ad unit slot, code:', adUnit.code, ', path:', adUnit.path, ', sizes:', JSON.stringify(adUnit.mediaTypes.banner.sizes));
+    
+    return googleSlot;
+}
+
+function addDNSPrefetch(urls) {
+    if (urls && urls.length) {
+        var dnsPrefetchElement;
+        var i;
+        var node;
+        
+        for (i = 0; i < urls.length; i++) {
+            dnsPrefetchElement = window.document.createElement('link');
+            dnsPrefetchElement.rel = 'preconnect';
+            dnsPrefetchElement.href = urls[i];
+            node = window.document.getElementsByTagName('script')[0];
+            node.parentNode.appendChild(dnsPrefetchElement);
+        }
+    }
+}
+
+function shouldShowAddUnit(adUnitCode) {
+    if (window.AD_UNITS_TOGGLE_ON.length) {
+        return window.AD_UNITS_TOGGLE_ON.indexOf(adUnitCode) !== -1;
+    } else {
+        return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnitCode) === -1;
+    }
+}
+
+function initAdServer() {
+    if (window.pbjs.initAdserverSet) {
+        return;
+    }
+    
+    utils.log(streamampConfig.namespace, 'DEBUG:', 'Initialise Ad Server, loading GoogleTag library gpt.js');
+    var gptSrc = dnsUrls.gpt;
+    utils.loadScript(gptSrc);
+    window.pbjs.initAdserverSet = true;
+}
+
+function loadPrebid() {
+    if (!window.pbjs || !window.pbjs.libLoaded) {
+        utils.log(streamampConfig.namespace, 'DEBUG:', 'Loading bidder.js');
+        utils.loadScript(dnsUrls.prebid);
+    }
+}
+
+function addClientTargeting() {
+    var key;
+    var keyValue;
+    var i;
+    var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
+    
+    if (clientConfig && clientConfig.targets) {
+        utils.log('Streamamp DEBUG:', 'Setting up custom targeting key-value:', clientConfig.targets);
+        for (key in clientConfig.targets) {
+            if (clientConfig.targets.hasOwnProperty(key)) {
+                keyValue = {
+                    name: key,
+                    value: clientConfig.targets[key],
+                    keyValueType: 'static'
+                };
+                
+                keyValue = utils.normalizeKeyValue(keyValue);
+                
+                googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+            }
+        }
+    }
+    
+    if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
+        for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
+            keyValue = streamampConfig.globalKeyValues[i];
+            keyValue = utils.normalizeKeyValue(keyValue);
+            
+            if (keyValue.value !== undefined) {
+                googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+            } else {
+                googletag.pubads().setTargeting(keyValue.name, []);
+            }
+            
+        }
+    }
+}
+
+function getBreakpoint() {
+    var browserWidth = utils.getBrowserWidth();
+    var i;
+    var selectedBreakpoint;
+    var breakpoint;
+    
+    for (i = 0; i < streamampConfig.breakpoints.length; i++) {
+        breakpoint = streamampConfig.breakpoints[i];
+        
+        if (browserWidth >= breakpoint.minWidth && browserWidth <= breakpoint.maxWidth) {
+            utils.log(streamampConfig.namespace, 'DEBUG:', 'We are using breakpoint ', [breakpoint.minWidth, breakpoint.maxWidth]);
+            selectedBreakpoint = breakpoint;
+            break;
+        }
+    }
+    
+    return selectedBreakpoint;
+}
+
+function getAdUnitsPerBreakpoint() {
+    var selectedBreakpoint = getBreakpoint();
+    var i;
+    var adUnit;
+    
+    //Filter AdUnits
+    var filteredAdUnits = [];
+    if (selectedBreakpoint) {
+        for (i = 0; i < streamampConfig.adUnits.length; i++) {
+            adUnit = streamampConfig.adUnits[i];
+            var key
+            if (streamampConfig.adUnits[i].breakpoints) {
+                key = Object.keys(streamampConfig.adUnits[i].breakpoints)
+            } else {
+                key = []
+            }
+            
+            if (adUnit && key.indexOf(selectedBreakpoint.label) !== -1 && shouldShowAddUnit(adUnit.code)) {
+                adUnit.bids = adUnit.bids.filter(bid => bid.labelAny.includes(selectedBreakpoint.label))
+                filteredAdUnits.push(adUnit);
+            }
+        }
+    }
+    
+    return filteredAdUnits;
+}
+
+function defineLazyAdUnits(gptSlots) {
+    
+    utils.log(streamampConfig.namespace, 'DEBUG:', 'Defining lazy load google slots');
+    
+    var predefinedSlotIds = gptSlots.map(function (slot) {
+        return slot.getSlotElementId();
+    });
+    
+    pbjs.que.push(function () {
+        var adUnits = pbjs.adUnits || [];
+        
+        var definedAdUnits = adUnits.map(function (adUnit) {
+            return adUnit.code;
+        });
+        
+        // Filter adunits already added to the prebid
+        var adUnitsGPT = getAdUnitsPerBreakpoint().filter(function (adUnit) {
+            return definedAdUnits.indexOf(adUnit.code) === -1;
+        });
+        
+        utils.log(config.client, 'DEBUG:', 'Add new Ad Units', adUnitsGPT.map(function (adUnit) {
+            return adUnit.code;
+        }));
+        pbjs.addAdUnits(adUnitsGPT);
+        
+        adUnitsGPT.forEach(function (adUnit) {
+            defineAdUnitSlot(adUnit, predefinedSlotIds);
+        });
+    });
+}
+
+function refreshBids(selectedAdUnits) {
+    
+    var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
+    var gptSlots = getAdUnitsPerBreakpoint();
+    
+    var apstagSlots;
+    
+    apstagSlots = createAPSAdUnits(gptSlots);
+    
+    if(selectedAdUnits) {
+        if (Array.isArray(selectedAdUnits)) {
+            apstagSlots = apstagSlots.filter(function(apstagSlot) {
+                return selectedAdUnits.indexOf(apstagSlot.slotID) > -1;
+            });
+        } else if (typeof selectedAdUnits === 'string') {
+            apstagSlots = apstagSlots.filter(function (apstagSlot) {
+                return apstagSlot.slotID === selectedAdUnits
+            })
+        }
+    }
+    
+    if (streamampConfig.a9Enabled) {
+        apstag.fetchBids({
+            slots: apstagSlots,
+            timeout: bidTimeout
+        }, function (bids) {
+        });
+    }
+    googletag.cmd.push(function () {
+        var gptSlots = googletag.pubads().getSlots();
+        var adUnitsToRefresh = [];
+        var slotIds = [];
+        
+        
+        if (selectedAdUnits) {
+            var slots = {};
+            
+            for (i = 0; i < gptSlots.length; i++) {
+                slot = gptSlots[i];
+                slots[slot.getSlotElementId()] = slot;
+            }
+            
+            if (Array.isArray(selectedAdUnits)) {
+                for (var i = 0; i < selectedAdUnits.length; i++) {
+                    adUnitsToRefresh.push(slots[selectedAdUnits[i]]);
+                }
+                slotIds = selectedAdUnits
+            } else if (typeof selectedAdUnits === 'string') {
+                adUnitsToRefresh = [slots[selectedAdUnits]];
+                slotIds = [selectedAdUnits];
+            }
+            
+        } else {
+            adUnitsToRefresh = gptSlots
+            slotIds = gptSlots.map(function (gptSlot) {
+                return gptSlot.getSlotElementId()
+            })
+        }
+        
+        pbjs.que.push(function () {
+            pbjs.requestBids({
+                timeout: bidTimeout,
+                adUnitCodes: slotIds,
+                bidsBackHandler: function () {
+                    addClientTargeting();
+                    pbjs.setTargetingForGPTAsync(slotIds);
+                    googletag.pubads().refresh(adUnitsToRefresh);
+                },
+            })
+            if (streamampConfig.a9Enabled) {
+                apstag.setDisplayBids();
+            }
+        });
+    })
+    
+}
+window.adRefreshTimer = null;
 
 // Refresh bids handler
-    window.adRefreshTimer = null;
-
+function refresh (selectedAdUnits) {
+    
+    function generateRefreshTimeout() {
+        var min = +streamampConfig.minRefreshTime || 60;
+        var max = +streamampConfig.maxRefreshTime || 90;
+        return (Math.floor(Math.random() * (max - min)) + min) * 1e3;
+    }
+    
     var refreshAds = function () {
         if (window.adRefreshTimer) {
             window.clearInterval(window.adRefreshTimer);
         }
         window.adRefreshTimer = setInterval(function () {
             if (streamampConfig.hasRefreshBids) {
-                refreshBids();
+                refreshBids(selectedAdUnits);
             }
-        }, streamampConfig.refreshBidsTimeout * 1e3);
+        }, generateRefreshTimeout());
     };
     refreshAds();
-
+    
     window.onfocus = function () {
         refreshAds();
     };
@@ -829,18 +1208,440 @@ function stickyAd(adUnits) {
         window.clearInterval(window.adRefreshTimer);
         window.adRefreshTimer = null;
     };
-
 };
 
-function normalizeKeyValue(keyValue){
-    if (keyValue && keyValue.keyValueType === 'variable')
-    {
-        keyValue.value = window[keyValue.value];
-        if (keyValue.value === '')
-        {
-            keyValue.value = undefined;
+// Exposed functions
+function refreshBidsNOTUSED(adUnitsCodes, callback) {
+    pbjs.isAuctionEnded = false;
+    googletag.cmd.push(function () {
+        var refreshUnits = [];
+        var slotIds = [];
+        var gptSlots = googletag.pubads().getSlots();
+        var slots = {};
+        var slot;
+        var i;
+        
+        for (i = 0; i < gptSlots.length; i++) {
+            slot = gptSlots[i];
+            slots[slot.getSlotElementId()] = slot;
+        }
+        
+        if (Array.isArray(adUnitsCodes)) {
+            for (i = 0; i < adUnitsCodes.length; i++) {
+                refreshUnits.push(slots[adUnitsCodes[i]]);
+                slotIds.push(adUnitsCodes[i]);
+            }
+        } else if (typeof adUnitsCodes === 'string') {
+            refreshUnits = [slots[adUnitsCodes]];
+            slotIds = [adUnitsCodes];
+        }
+        
+        if (config.preventFirstAuctionInit) {
+            defineLazyAdUnits(gptSlots);
+        }
+        
+        pbjs.que.push(function () {
+            pbjs.requestBids({
+                timeout: config.biddingTimeout,
+                adUnitCodes: slotIds,
+                bidsBackHandler: function () {
+                    pbjs.setTargetingForGPTAsync(slotIds);
+                    addClientTargeting();
+                    
+                    refreshUnits = refreshUnits.filter(function (slot) {
+                        return slot !== undefined;
+                    });
+                    
+                    if (typeof callback === 'function') {
+                        callback.call();
+                    } else {
+                        googletag.pubads().refresh(refreshUnits);
+                    }
+                    
+                    pbjs.isAuctionEnded = true;
+                    prebidEvents.processAuctionEndQueue();
+                }
+            });
+        });
+    }
+        .bind(this));
+}
+
+function requestBidsRefreshing(adUnits, timeout) {
+    return new Promise(function (resolve) {
+            googletag.cmd.push(function () {
+                pbjs.requestBids({
+                    timeout: timeout,
+                    adUnits: adUnits,
+                    bidsBackHandler: function () {
+                        resolve();
+                    }
+                });
+            });
+        }
+    );
+}
+
+function refreshAllBids() {
+    pbjs.que.push(function () {
+        pbjs.isAuctionEnded = false;
+        
+        var bidRequests = utils.split(pbjs.adUnits, 10).map(function (adUnits) {
+            return requestBidsRefreshing(adUnits, config.biddingTimeout);
+        });
+        
+        Promise.all(bidRequests).then(function () {
+            pbjs.setTargetingForGPTAsync();
+            addClientTargeting();
+            
+            var refreshSlotList = googletag.pubads().getSlots().map(function (slot) {
+                if (slot !== undefined && slot.lazyLoad === true) {
+                    lazyLoading.register(slot.getSlotElementId(), prebidEvents.auctionEndQueue);
+                }
+                return slot;
+            }).filter(function (slot) {
+                return slot !== undefined && slot.lazyLoad !== true;
+            });
+            googletag.pubads().refresh(refreshSlotList);
+            
+            pbjs.isAuctionEnded = true;
+            prebidEvents.processAuctionEndQueue();
+        });
+    });
+}
+
+function destroySlots(adUnitCodes) {
+    utils.log(streamampConfig.namespace, 'DEBUG:', 'Destory Ad Unit slots ', adUnitCodes);
+    
+    var adUnitSlots = adUnitCodes.reduce(function (slots, adUnitCode) {
+        slots.push(window.gptAdSlots[adUnitCode]);
+        return slots;
+    }, []);
+    
+    pbjs.que.push(function () {
+        pbjs.adUnits = pbjs.adUnits.filter(function (adUnit) {
+            return adUnitCodes.indexOf(adUnit.code) === -1;
+        });
+    });
+    
+    googletag.cmd.push(function () {
+        googletag.destroySlots(adUnitSlots);
+        adUnitSlots.forEach(function (adUnitCode) {
+            delete window.gptAdSlots[adUnitCode];
+        });
+    });
+}
+
+function overrideGoogletagDisplay(config) {
+    googletag.cmd.push(function () {
+        var _googletagDisplay = googletag.display;
+        googletag.display = function (adUnitCode) {
+            utils.log(config.namespace, 'DEBUG:', 'googletag.display called for', adUnitCode);
+            _googletagDisplay(adUnitCode);
+            var slot = googletag.pubads().getSlots().find(function (slot) {
+                return slot.getSlotElementId() === adUnitCode;
+            });
+            
+            window[config.namespace].que.push(function () {
+                if (slot && slot.lazyLoad === true && config.GPTAsync === true) {
+                    window[config.namespace].registerLazyLoad(adUnitCode);
+                } else if (config.GPTAsync === true && !config.preventInitAdServer) {
+                    window[config.namespace].auctionEndQueue.push(function () {
+                        googletag.pubads().refresh([slot]);
+                    });
+                }
+            });
+        }
+        ;
+    });
+}
+
+function isBody(node) {
+    return node === document.body;
+}
+
+function isVisible(node) {
+    return window.getComputedStyle(node).display !== 'none';
+}
+
+function isNodeVisible(node) {
+    
+    if (isBody(node)) {
+        return true;
+    }
+    return isVisible(node) && isNodeVisible(node.parentNode);
+}
+
+function registerLazyLoad(adUnitCode, auctionEndQueue) {
+    var adUnitDiv = document.getElementById(adUnitCode);
+    
+    if (!adUnitDiv || adUnitDiv.length < 1 || adUnitDiv.loaded === false) {
+        return;
+    }
+    
+    adUnitDiv.loaded = false;
+    adUnitDiv.fetchAd = function () {
+        window.streamamp.refreshBids(adUnitDiv.id);
+        adUnitDiv.loaded = true;
+        window.removeEventListener('scroll', adUnitDiv.isInView);
+    }
+    ;
+    
+    adUnitDiv.isInView = function () {
+        var prop = adUnitDiv.getBoundingClientRect();
+        
+        var winHeight = window.innerHeight;
+        var inView = prop.top <= winHeight && prop.top - winHeight < prop.height * -0.5 && prop.top >= 0;
+        
+        if (typeof adUnitDiv.isVisible === 'undefined') {
+            adUnitDiv.isVisible = isNodeVisible(adUnitDiv);
+        }
+        
+        if (inView && !adUnitDiv.loaded && adUnitDiv.isVisible) {
+            auctionEndQueue.push(adUnitDiv.fetchAd);
+        }
+        
+        return inView;
+    }
+    ;
+    
+    if (!adUnitDiv.isInView()) {
+        window.addEventListener('scroll', adUnitDiv.isInView);
+    }
+}
+
+function configAdUnitSlotLazyLoad(googleSlot, config) {
+    if (config.GPTAsync === true) {
+        googleSlot.lazyLoad = true;
+        googleSlot.setCollapseEmptyDiv(false);
+    }
+    return googleSlot;
+}
+
+var auctionEndCallbacks = [];
+var auctionEndQueue = {
+    push: function (cb) {
+        if (typeof cb === 'function') {
+            pbjs.que.push(function () {
+                if (pbjs.isAuctionEnded) {
+                    cb.call();
+                } else {
+                    auctionEndCallbacks.push(cb);
+                }
+            });
+        } else {
+            utils.logError('Commands written into auctionEndQueue must be wrapped in a function');
         }
     }
-
-    return keyValue;
 };
+
+function processAuctionEndQueue() {
+    auctionEndCallbacks.forEach(function (cb) {
+        if (typeof cb === 'function') {
+            cb.call();
+        } else {
+            utils.logError('Commands written into auctionEndQueue must be wrapped in a function');
+        }
+    });
+    auctionEndCallbacks = [];
+}
+
+if (streamampConfig && streamampConfig.namespace) {
+    polyfills();
+    
+    window[streamampConfig.namespace] = window[streamampConfig.namespace] || {};
+    window[streamampConfig.namespace].que = window[streamampConfig.namespace].que || [];
+    
+    window[streamampConfig.namespace] = factory(streamampConfig);
+    
+    processQueue();
+}
+
+function processQueue() {
+    window[streamampConfig.namespace].que.forEach(function (cmd) {
+        if (typeof cmd.called === 'undefined' && typeof cmd === 'function') {
+            try {
+                cmd.call();
+                cmd.called = true;
+            } catch (e) {
+                utils.logError('Error processing command :' + e.message);
+            }
+        }
+    });
+    
+    window[streamampConfig.namespace].que.push = function (cmd) {
+        if (typeof cmd === 'function') {
+            try {
+                cmd.call();
+            } catch (e) {
+                utils.logError('Error processing command :' + e.message);
+            }
+        } else {
+            utils.logError('Commands written into ', streamampConfig.namespace + '.cmd.push must be wrapped in a function');
+        }
+    }
+    ;
+}
+
+function polyfills() {
+    if (!String.prototype.endsWith) {
+        String.prototype.endsWith = function (search, this_len) {
+            if (this_len === undefined || this_len > this.length) {
+                this_len = this.length;
+            }
+            return this.substring(this_len - search.length, this_len) === search;
+        }
+        ;
+    }
+    
+    // .find polyfill
+    if (!Array.prototype.find) {
+        Object.defineProperty(Array.prototype, 'find', {
+            value: function (predicate) {
+                // 1. Let O be ? ToObject(this value).
+                if (this == null) {
+                    throw new TypeError('"this" is null or not defined');
+                }
+                
+                var o = Object(this);
+                
+                // 2. Let len be ? ToLength(? Get(O, "length")).
+                var len = o.length >>> 0;
+                
+                // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+                if (typeof predicate !== 'function') {
+                    throw new TypeError('predicate must be a function');
+                }
+                
+                // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+                var thisArg = arguments[1];
+                
+                // 5. Let k be 0.
+                var k = 0;
+                
+                // 6. Repeat, while k < len
+                while (k < len) {
+                    // a. Let Pk be ! ToString(k).
+                    // b. Let kValue be ? Get(O, Pk).
+                    // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+                    // d. If testResult is true, return kValue.
+                    var kValue = o[k];
+                    if (predicate.call(thisArg, kValue, k, o)) {
+                        return kValue;
+                    }
+                    // e. Increase k by 1.
+                    k++;
+                }
+                
+                // 7. Return undefined.
+                return undefined;
+            },
+            configurable: true,
+            writable: true
+        });
+    }
+    
+    // .includes polyfill
+    if (!Array.prototype.includes) {
+        Object.defineProperty(Array.prototype, 'includes', {
+            value: function (searchElement, fromIndex) {
+                
+                if (this == null) {
+                    throw new TypeError('"this" is null or not defined');
+                }
+                
+                // 1. Let O be ? ToObject(this value).
+                var o = Object(this);
+                
+                // 2. Let len be ? ToLength(? Get(O, "length")).
+                var len = o.length >>> 0;
+                
+                // 3. If len is 0, return false.
+                if (len === 0) {
+                    return false;
+                }
+                
+                // 4. Let n be ? ToInteger(fromIndex).
+                //    (If fromIndex is undefined, this step produces the value 0.)
+                var n = fromIndex | 0;
+                
+                // 5. If n ≥ 0, then
+                //  a. Let k be n.
+                // 6. Else n < 0,
+                //  a. Let k be len + n.
+                //  b. If k < 0, let k be 0.
+                var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+                
+                function sameValueZero(x, y) {
+                    return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
+                }
+                
+                // 7. Repeat, while k < len
+                while (k < len) {
+                    // a. Let elementK be the result of ? Get(O, ! ToString(k)).
+                    // b. If SameValueZero(searchElement, elementK) is true, return true.
+                    if (sameValueZero(o[k], searchElement)) {
+                        return true;
+                    }
+                    // c. Increase k by 1.
+                    k++;
+                }
+                
+                // 8. Return false
+                return false;
+            }
+        });
+    }
+    
+    // Object.values polyfill
+    Object.values = Object.values ? Object.values : function (obj) {
+        var allowedTypes = ["[object String]", "[object Object]", "[object Array]", "[object Function]"];
+        var objType = Object.prototype.toString.call(obj);
+        
+        if (obj === null || typeof obj === "undefined") {
+            throw new TypeError("Cannot convert undefined or null to object");
+        } else if (!~allowedTypes.indexOf(objType)) {
+            return [];
+        } else {
+            // if ES6 is supported
+            if (Object.keys) {
+                return Object.keys(obj).map(function (key) {
+                    return obj[key];
+                });
+            }
+            
+            var result = [];
+            for (var prop in obj) {
+                if (obj.hasOwnProperty(prop)) {
+                    result.push(obj[prop]);
+                }
+            }
+            
+            return result;
+        }
+    };
+}
+
+function createAPSAdUnits(adUnitsGPT) {
+    var label = getBreakpoint().label
+    var googleSizes = [[320, 100], [970, 90], [468, 60], [120, 600]]
+    
+    function filterGoogleSize(adUnits) {
+        var googleSizejson = googleSizes.map(function(googleSize) {return JSON.stringify(googleSize)})
+        var filterGoogleSizes = adUnits.filter(function(adUnit){
+            return !googleSizejson.includes(JSON.stringify(adUnit))
+        })
+        
+        return filterGoogleSizes
+    }
+    
+    var apstagSlots = adUnitsGPT.map(function (adUnit) {
+        return {
+            slotID: adUnit.code,
+            slotName: adUnit.path,
+            sizes: filterGoogleSize(adUnit.breakpoints[label]),
+        }
+    });
+    
+    return apstagSlots
+}
