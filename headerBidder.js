@@ -20,7 +20,7 @@ function isClientDebugMode() {
     return (decodeURIComponent(results[2].replace(/\+/g, ' ')).toUpperCase() === 'TRUE');
 }
 
-var utils = {
+var streamampUtils = {
     split: function (array, chunkSize) {
         var array_aux = array || [];
         var result = [];
@@ -91,7 +91,7 @@ var utils = {
                     stickyAdUnits.filter(function (adUnit) {
                         return adUnit.code === e.slot.getSlotElementId();
                     }).map(function (adUnit) {
-                        utils.applyStyle(adUnit);
+                        streamampUtils.applyStyle(adUnit);
                     });
                 }
             });
@@ -155,7 +155,7 @@ var utils = {
 // setting publisher
 var publisher;
 
-function splitHostname() {
+function streamampSplitHostname() {
     var result = {};
     var regexParse = new RegExp('([a-z\-0-9]{2,63})\.([a-z\.]{2,5})$');
     var urlParts = regexParse.exec(window.location.hostname);
@@ -165,11 +165,11 @@ function splitHostname() {
     return result;
 }
 
-// Set publisher to the domain from SplitHostname()
-if (splitHostname().domain === 'road') {
-    publisher = splitHostname().subdomain + splitHostname().domain
+// Set publisher to the domain from streamampSplitHostname()
+if (streamampSplitHostname().domain === 'road') {
+    publisher = streamampSplitHostname().subdomain + streamampSplitHostname().domain
 } else {
-    publisher = splitHostname().domain
+    publisher = streamampSplitHostname().domain
 }
 
 // -------------- Global Variables -----------
@@ -200,20 +200,20 @@ window.AD_UNITS_TOGGLE_ON = window.AD_UNITS_TOGGLE_ON || [];
 //-----------------------------
 
 // Prefetch libs
-addDNSPrefetch(Object.values(dnsUrls));
+streamampAddDNSPrefetch(Object.values(dnsUrls));
 
 if (publisher) {
     var loadStreamampConfig = document.createElement('script');
     loadStreamampConfig.type = 'text/javascript';
     loadStreamampConfig.async = true;
     loadStreamampConfig.src = dnsUrls.config;
-    loadStreamampConfig.onload = setup
+    loadStreamampConfig.onload = streamampSetup
     var node = document.getElementsByTagName('script')[0];
     node.parentNode.insertBefore(loadStreamampConfig, node);
 }
 
-// Setup
-function setup() {
+// streamampSetup
+function streamampSetup() {
     /* ------set up global variable ------ */
     var adUnits = streamampConfig.adUnits
     var levels = window.location.pathname.split('/').filter(function (level) {
@@ -222,10 +222,10 @@ function setup() {
     /* ----------------------------------- */
     
     // initialize GPT
-    initAdServer();
+    streamampInitAdServer();
     
     // initialize Prebid
-    loadPrebid();
+    streamampLoadPrebid();
     
     // Load apstag library
     if (streamampConfig.a9Enabled) {
@@ -399,30 +399,30 @@ function setup() {
     });
     
     if (!streamampConfig.preventInit) {
-        init()
+        streamampInit()
     }
 }
 
 // Init Auction
-function init() {
+function streamampInit() {
     pbjs.isAuctionEnded = false;
     
     // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
-        initializeCmp()
+        streamampInitializeCmp()
     };
     
     if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
-        utils.log(streamampConfig.namespace, 'DEBUG:', 'Fire beforeInit event');
+        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Fire beforeInit event');
         streamampConfig.beforeInit();
     }
     // filters ad units for current break points - removing unnecessary bidders
-    var adUnitsGPT = getAdUnitsPerBreakpoint();
+    var adUnitsGPT = streamampGetAdUnitsPerBreakpoint();
     
     var adUnitsAPS
     if (streamampConfig.a9Enabled) {
         // takes the filterd ad units and generates aps ad units
-        adUnitsAPS = createAPSAdUnits(adUnitsGPT);
+        adUnitsAPS = streamampCreateAPSAdUnits(adUnitsGPT);
     }
     
     // removes the old/pre-existing ad units
@@ -430,8 +430,8 @@ function init() {
         var oldAdUnitCodes = pbjs.adUnits.map(function (adUnit) {
             return adUnit.code;
         });
-        utils.log(streamampConfig.namespace, 'DEBUG:', 'Remove previous Ad Unit Slots', oldAdUnitCodes);
-        destroySlots(oldAdUnitCodes);
+        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Remove previous Ad Unit Slots', oldAdUnitCodes);
+        streamampDestroySlots(oldAdUnitCodes);
     }
     googletag.cmd.push(function () {
         
@@ -441,35 +441,35 @@ function init() {
         
         // defines slots
         adUnitsGPT.forEach(function (adUnit) {
-            defineAdUnitSlot(adUnit, predefinedSlotIds)
+            streamampDefineAdUnitSlot(adUnit, predefinedSlotIds)
         });
         
         googletag.pubads().enableSingleRequest();
-        utils.log(streamampConfig.namespace, 'DEBUG:', 'Enable single request (SRA)');
+        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Enable single request (SRA)');
         
         if (streamampConfig.hasCollapedEmptyDivs) {
             googletag.pubads().collapseEmptyDivs(true, true);
-            utils.log(streamampConfig.namespace, 'DEBUG:', 'Enable collapse of empty ad');
+            streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Enable collapse of empty ad');
         }
         
         googletag.enableServices();
-        utils.log(streamampConfig.namespace, 'DEBUG:', 'Enable googletag service');
+        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Enable googletag service');
     })
     
     if (streamampConfig.afterInit && typeof streamampConfig.afterInit === 'function') {
-        utils.log(streamampConfig.namespace, 'DEBUG:', 'Fire afterInit event');
+        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Fire afterInit event');
         streamampConfig.afterInit();
     }
     
     if (streamampConfig.hasRefreshBids) {
-        refresh(streamampConfig.adUnitsToRefresh)
+        streamampRefresh(streamampConfig.adUnitsToRefresh)
     }
     
-    utils.stickyAd(adUnitsGPT);
+    streamampUtils.stickyAd(adUnitsGPT);
     auction(adUnitsGPT, adUnitsAPS)
 }
 
-function fetchHeaderBids(adUnitsGPT, adUnitsAPS) {
+function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
     
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
     // Declare header bidders
@@ -540,7 +540,7 @@ function fetchHeaderBids(adUnitsGPT, adUnitsAPS) {
                 pbjs.setTargetingForGPTAsync();
             });
             
-            addClientTargeting();
+            streamampAddClientTargeting();
             googletag.pubads().refresh();
         });
     }
@@ -564,7 +564,7 @@ function fetchHeaderBids(adUnitsGPT, adUnitsAPS) {
                 timeout: bidTimeout,
                 bidsBackHandler: function (bidResponses) {
                     headerBidderBack('prebid');
-                    addClientTargeting();
+                    streamampAddClientTargeting();
                 }
             });
         });
@@ -583,15 +583,15 @@ function auction(adUnitsGPT, adUnitsAPS) {
     // Fetch header bids
     if (window.__cmp) {
         window.__cmp('getConsentData', null, function (data, success) {
-            fetchHeaderBids(adUnitsGPT, adUnitsAPS);
+            streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS);
         });
     } else {
-        fetchHeaderBids(adUnitsGPT, adUnitsAPS);
+        streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS);
     }
 }
 
 // Function to initialize CMP
-function initializeCmp() {
+function streamampInitializeCmp() {
     var elem = document.createElement('script');
     elem.src = 'https://quantcast.mgr.consensu.org/cmp.js';
     elem.async = true;
@@ -860,10 +860,10 @@ function generatePriceGranularity(priceGranularity) {
     };
 }
 
-function configAdUnitSlotKeyValue(adUnitCode, googleSlot) {
+function streamampConfigAdUnitSlotKeyValue(adUnitCode, googleSlot) {
     if (streamampConfig.keyValues && streamampConfig.keyValues[adUnitCode]) {
         streamampConfig.keyValues[adUnitCode].forEach(function (keyValue) {
-            keyValue = utils.normalizeKeyValue(keyValue);
+            keyValue = streamampUtils.normalizeKeyValue(keyValue);
             
             if (keyValue.value !== undefined) {
                 googleSlot = googleSlot.setTargeting(keyValue.name, [keyValue.value]);
@@ -875,21 +875,21 @@ function configAdUnitSlotKeyValue(adUnitCode, googleSlot) {
     return googleSlot;
 }
 
-function configSlotSafeFrame(googleSlot, adUnit) {
+function streamampConfigSlotSafeFrame(googleSlot, adUnit) {
     return googleSlot.setForceSafeFrame(true)
 }
 
-function sizemapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
+function streamampSizemapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
     var sizemap = googletag.sizeMapping()
     streamampConfig.breakpoints.forEach(function (breakpoint, index) {
         var adUnitbreakpointsbreakpointlabel = adUnitbreakpoints[breakpoint.label] ? adUnitbreakpoints[breakpoint.label] : []
-        sizemap = sizemap.addSize([breakpoint.minWidth, 0], compareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))
+        sizemap = sizemap.addSize([breakpoint.minWidth, 0], streamampCompareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))
     });
     
     return sizemap.build()
 }
 
-function compareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUnitmediaTypesbannersizes) {
+function streamampCompareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUnitmediaTypesbannersizes) {
     var matchingSizes = [];
     var googleSize = [[320, 100], [970, 90], [468, 60], [120, 600]]
     breakpoints.forEach(function (breakpoint) {
@@ -911,13 +911,13 @@ function compareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoints, adUni
     return matchingSizes
 }
 
-function defineAdUnitSlot(adUnit, predefinedSlotId) {
+function streamampDefineAdUnitSlot(adUnit, predefinedSlotId) {
     var googleSlot
     
     if (!adUnit.outOfPage) {
         var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {};
         googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
-            .defineSizeMapping(sizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
+            .defineSizeMapping(streamampSizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
     } else {
         googleSlot = googletag.defineOutOfPageSlot(adUnit.path, adUnit.code);
     }
@@ -926,11 +926,11 @@ function defineAdUnitSlot(adUnit, predefinedSlotId) {
         googleSlot = lazyLoading.configAdUnitSlot(googleSlot, config);
     }
     
-    googleSlot = configAdUnitSlotKeyValue(adUnit.code, googleSlot);
+    googleSlot = streamampConfigAdUnitSlotKeyValue(adUnit.code, googleSlot);
     
     
     if (googleSlot && adUnit.safeFrame) {
-        googleSlot = configSlotSafeFrame(googleSlot, adUnit);
+        googleSlot = streamampConfigSlotSafeFrame(googleSlot, adUnit);
     }
     
     // if (!predefinedSlotId && googleSlot) {
@@ -939,12 +939,12 @@ function defineAdUnitSlot(adUnit, predefinedSlotId) {
     
     window.gptAdSlots[adUnit.code] = googleSlot;
     
-    utils.log(streamampConfig.namespace, 'DEBUG:', 'Define Ad unit slot, code:', adUnit.code, ', path:', adUnit.path, ', sizes:', JSON.stringify(adUnit.mediaTypes.banner.sizes));
+    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Define Ad unit slot, code:', adUnit.code, ', path:', adUnit.path, ', sizes:', JSON.stringify(adUnit.mediaTypes.banner.sizes));
     
     return googleSlot;
 }
 
-function addDNSPrefetch(urls) {
+function streamampAddDNSPrefetch(urls) {
     if (urls && urls.length) {
         var dnsPrefetchElement;
         var i;
@@ -960,7 +960,7 @@ function addDNSPrefetch(urls) {
     }
 }
 
-function shouldShowAddUnit(adUnitCode) {
+function streamampShouldShowAddUnit(adUnitCode) {
     if (window.AD_UNITS_TOGGLE_ON.length) {
         return window.AD_UNITS_TOGGLE_ON.indexOf(adUnitCode) !== -1;
     } else {
@@ -968,32 +968,32 @@ function shouldShowAddUnit(adUnitCode) {
     }
 }
 
-function initAdServer() {
+function streamampInitAdServer() {
     if (window.pbjs.initAdserverSet) {
         return;
     }
     
-    utils.log(streamampConfig.namespace, 'DEBUG:', 'Initialise Ad Server, loading GoogleTag library gpt.js');
+    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Initialise Ad Server, loading GoogleTag library gpt.js');
     var gptSrc = dnsUrls.gpt;
-    utils.loadScript(gptSrc);
+    streamampUtils.loadScript(gptSrc);
     window.pbjs.initAdserverSet = true;
 }
 
-function loadPrebid() {
+function streamampLoadPrebid() {
     if (!window.pbjs || !window.pbjs.libLoaded) {
-        utils.log(streamampConfig.namespace, 'DEBUG:', 'Loading bidder.js');
-        utils.loadScript(dnsUrls.prebid);
+        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Loading bidder.js');
+        streamampUtils.loadScript(dnsUrls.prebid);
     }
 }
 
-function addClientTargeting() {
+function streamampAddClientTargeting() {
     var key;
     var keyValue;
     var i;
     var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
     
     if (clientConfig && clientConfig.targets) {
-        utils.log('Streamamp DEBUG:', 'Setting up custom targeting key-value:', clientConfig.targets);
+        streamampUtils.log('Streamamp DEBUG:', 'Setting up custom targeting key-value:', clientConfig.targets);
         for (key in clientConfig.targets) {
             if (clientConfig.targets.hasOwnProperty(key)) {
                 keyValue = {
@@ -1002,7 +1002,7 @@ function addClientTargeting() {
                     keyValueType: 'static'
                 };
                 
-                keyValue = utils.normalizeKeyValue(keyValue);
+                keyValue = streamampUtils.normalizeKeyValue(keyValue);
                 
                 googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
             }
@@ -1012,7 +1012,7 @@ function addClientTargeting() {
     if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
         for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
             keyValue = streamampConfig.globalKeyValues[i];
-            keyValue = utils.normalizeKeyValue(keyValue);
+            keyValue = streamampUtils.normalizeKeyValue(keyValue);
             
             if (keyValue.value !== undefined) {
                 googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
@@ -1024,8 +1024,8 @@ function addClientTargeting() {
     }
 }
 
-function getBreakpoint() {
-    var browserWidth = utils.getBrowserWidth();
+function streamampGetBreakpoint() {
+    var browserWidth = streamampUtils.getBrowserWidth();
     var i;
     var selectedBreakpoint;
     var breakpoint;
@@ -1034,7 +1034,7 @@ function getBreakpoint() {
         breakpoint = streamampConfig.breakpoints[i];
         
         if (browserWidth >= breakpoint.minWidth && browserWidth <= breakpoint.maxWidth) {
-            utils.log(streamampConfig.namespace, 'DEBUG:', 'We are using breakpoint ', [breakpoint.minWidth, breakpoint.maxWidth]);
+            streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'We are using breakpoint ', [breakpoint.minWidth, breakpoint.maxWidth]);
             selectedBreakpoint = breakpoint;
             break;
         }
@@ -1043,8 +1043,8 @@ function getBreakpoint() {
     return selectedBreakpoint;
 }
 
-function getAdUnitsPerBreakpoint() {
-    var selectedBreakpoint = getBreakpoint();
+function streamampGetAdUnitsPerBreakpoint() {
+    var selectedBreakpoint = streamampGetBreakpoint();
     var i;
     var adUnit;
     
@@ -1060,7 +1060,7 @@ function getAdUnitsPerBreakpoint() {
                 key = []
             }
             
-            if (adUnit && key.indexOf(selectedBreakpoint.label) !== -1 && shouldShowAddUnit(adUnit.code)) {
+            if (adUnit && key.indexOf(selectedBreakpoint.label) !== -1 && streamampShouldShowAddUnit(adUnit.code)) {
                 adUnit.bids = adUnit.bids.filter(bid => bid.labelAny.includes(selectedBreakpoint.label))
                 filteredAdUnits.push(adUnit);
             }
@@ -1070,9 +1070,9 @@ function getAdUnitsPerBreakpoint() {
     return filteredAdUnits;
 }
 
-function defineLazyAdUnits(gptSlots) {
+function streamampDefineLazyAdUnits(gptSlots) {
     
-    utils.log(streamampConfig.namespace, 'DEBUG:', 'Defining lazy load google slots');
+    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Defining lazy load google slots');
     
     var predefinedSlotIds = gptSlots.map(function (slot) {
         return slot.getSlotElementId();
@@ -1086,29 +1086,29 @@ function defineLazyAdUnits(gptSlots) {
         });
         
         // Filter adunits already added to the prebid
-        var adUnitsGPT = getAdUnitsPerBreakpoint().filter(function (adUnit) {
+        var adUnitsGPT = streamampGetAdUnitsPerBreakpoint().filter(function (adUnit) {
             return definedAdUnits.indexOf(adUnit.code) === -1;
         });
         
-        utils.log(config.client, 'DEBUG:', 'Add new Ad Units', adUnitsGPT.map(function (adUnit) {
+        streamampUtils.log(config.client, 'DEBUG:', 'Add new Ad Units', adUnitsGPT.map(function (adUnit) {
             return adUnit.code;
         }));
         pbjs.addAdUnits(adUnitsGPT);
         
         adUnitsGPT.forEach(function (adUnit) {
-            defineAdUnitSlot(adUnit, predefinedSlotIds);
+            streamampDefineAdUnitSlot(adUnit, predefinedSlotIds);
         });
     });
 }
 
-function refreshBids(selectedAdUnits) {
+function streamampRefreshBids(selectedAdUnits) {
     
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
-    var gptSlots = getAdUnitsPerBreakpoint();
+    var gptSlots = streamampGetAdUnitsPerBreakpoint();
     
     var apstagSlots;
     
-    apstagSlots = createAPSAdUnits(gptSlots);
+    apstagSlots = streamampCreateAPSAdUnits(gptSlots);
     
     if(selectedAdUnits) {
         if (Array.isArray(selectedAdUnits)) {
@@ -1165,7 +1165,7 @@ function refreshBids(selectedAdUnits) {
                 timeout: bidTimeout,
                 adUnitCodes: slotIds,
                 bidsBackHandler: function () {
-                    addClientTargeting();
+                    streamampAddClientTargeting();
                     pbjs.setTargetingForGPTAsync(slotIds);
                     googletag.pubads().refresh(adUnitsToRefresh);
                 },
@@ -1180,7 +1180,7 @@ function refreshBids(selectedAdUnits) {
 window.adRefreshTimer = null;
 
 // Refresh bids handler
-function refresh (selectedAdUnits) {
+function streamampRefresh (selectedAdUnits) {
     
     function generateRefreshTimeout() {
         var min = +streamampConfig.minRefreshTime || 60;
@@ -1194,7 +1194,7 @@ function refresh (selectedAdUnits) {
         }
         window.adRefreshTimer = setInterval(function () {
             if (streamampConfig.hasRefreshBids) {
-                refreshBids(selectedAdUnits);
+                streamampRefreshBids(selectedAdUnits);
             }
         }, generateRefreshTimeout());
     };
@@ -1209,108 +1209,8 @@ function refresh (selectedAdUnits) {
     };
 };
 
-// Exposed functions
-function refreshBidsNOTUSED(adUnitsCodes, callback) {
-    pbjs.isAuctionEnded = false;
-    googletag.cmd.push(function () {
-        var refreshUnits = [];
-        var slotIds = [];
-        var gptSlots = googletag.pubads().getSlots();
-        var slots = {};
-        var slot;
-        var i;
-        
-        for (i = 0; i < gptSlots.length; i++) {
-            slot = gptSlots[i];
-            slots[slot.getSlotElementId()] = slot;
-        }
-        
-        if (Array.isArray(adUnitsCodes)) {
-            for (i = 0; i < adUnitsCodes.length; i++) {
-                refreshUnits.push(slots[adUnitsCodes[i]]);
-                slotIds.push(adUnitsCodes[i]);
-            }
-        } else if (typeof adUnitsCodes === 'string') {
-            refreshUnits = [slots[adUnitsCodes]];
-            slotIds = [adUnitsCodes];
-        }
-        
-        if (config.preventFirstAuctionInit) {
-            defineLazyAdUnits(gptSlots);
-        }
-        
-        pbjs.que.push(function () {
-            pbjs.requestBids({
-                timeout: config.biddingTimeout,
-                adUnitCodes: slotIds,
-                bidsBackHandler: function () {
-                    pbjs.setTargetingForGPTAsync(slotIds);
-                    addClientTargeting();
-                    
-                    refreshUnits = refreshUnits.filter(function (slot) {
-                        return slot !== undefined;
-                    });
-                    
-                    if (typeof callback === 'function') {
-                        callback.call();
-                    } else {
-                        googletag.pubads().refresh(refreshUnits);
-                    }
-                    
-                    pbjs.isAuctionEnded = true;
-                    prebidEvents.processAuctionEndQueue();
-                }
-            });
-        });
-    }
-        .bind(this));
-}
-
-function requestBidsRefreshing(adUnits, timeout) {
-    return new Promise(function (resolve) {
-            googletag.cmd.push(function () {
-                pbjs.requestBids({
-                    timeout: timeout,
-                    adUnits: adUnits,
-                    bidsBackHandler: function () {
-                        resolve();
-                    }
-                });
-            });
-        }
-    );
-}
-
-function refreshAllBids() {
-    pbjs.que.push(function () {
-        pbjs.isAuctionEnded = false;
-        
-        var bidRequests = utils.split(pbjs.adUnits, 10).map(function (adUnits) {
-            return requestBidsRefreshing(adUnits, config.biddingTimeout);
-        });
-        
-        Promise.all(bidRequests).then(function () {
-            pbjs.setTargetingForGPTAsync();
-            addClientTargeting();
-            
-            var refreshSlotList = googletag.pubads().getSlots().map(function (slot) {
-                if (slot !== undefined && slot.lazyLoad === true) {
-                    lazyLoading.register(slot.getSlotElementId(), prebidEvents.auctionEndQueue);
-                }
-                return slot;
-            }).filter(function (slot) {
-                return slot !== undefined && slot.lazyLoad !== true;
-            });
-            googletag.pubads().refresh(refreshSlotList);
-            
-            pbjs.isAuctionEnded = true;
-            prebidEvents.processAuctionEndQueue();
-        });
-    });
-}
-
-function destroySlots(adUnitCodes) {
-    utils.log(streamampConfig.namespace, 'DEBUG:', 'Destory Ad Unit slots ', adUnitCodes);
+function streamampDestroySlots(adUnitCodes) {
+    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Destory Ad Unit slots ', adUnitCodes);
     
     var adUnitSlots = adUnitCodes.reduce(function (slots, adUnitCode) {
         slots.push(window.gptAdSlots[adUnitCode]);
@@ -1331,11 +1231,11 @@ function destroySlots(adUnitCodes) {
     });
 }
 
-function overrideGoogletagDisplay(config) {
+function streamampOverrideGoogletagDisplay(config) {
     googletag.cmd.push(function () {
         var _googletagDisplay = googletag.display;
         googletag.display = function (adUnitCode) {
-            utils.log(config.namespace, 'DEBUG:', 'googletag.display called for', adUnitCode);
+            streamampUtils.log(config.namespace, 'DEBUG:', 'googletag.display called for', adUnitCode);
             _googletagDisplay(adUnitCode);
             var slot = googletag.pubads().getSlots().find(function (slot) {
                 return slot.getSlotElementId() === adUnitCode;
@@ -1355,23 +1255,23 @@ function overrideGoogletagDisplay(config) {
     });
 }
 
-function isBody(node) {
+function streamampIsBody(node) {
     return node === document.body;
 }
 
-function isVisible(node) {
+function streamampIsVisible(node) {
     return window.getComputedStyle(node).display !== 'none';
 }
 
-function isNodeVisible(node) {
+function streamampIsNodeVisible(node) {
     
-    if (isBody(node)) {
+    if (streamampIsBody(node)) {
         return true;
     }
-    return isVisible(node) && isNodeVisible(node.parentNode);
+    return streamampIsVisible(node) && streamampIsNodeVisible(node.parentNode);
 }
 
-function registerLazyLoad(adUnitCode, auctionEndQueue) {
+function streamampRegisterLazyLoad(adUnitCode, auctionEndQueue) {
     var adUnitDiv = document.getElementById(adUnitCode);
     
     if (!adUnitDiv || adUnitDiv.length < 1 || adUnitDiv.loaded === false) {
@@ -1393,7 +1293,7 @@ function registerLazyLoad(adUnitCode, auctionEndQueue) {
         var inView = prop.top <= winHeight && prop.top - winHeight < prop.height * -0.5 && prop.top >= 0;
         
         if (typeof adUnitDiv.isVisible === 'undefined') {
-            adUnitDiv.isVisible = isNodeVisible(adUnitDiv);
+            adUnitDiv.isVisible = streamampIsNodeVisible(adUnitDiv);
         }
         
         if (inView && !adUnitDiv.loaded && adUnitDiv.isVisible) {
@@ -1409,7 +1309,7 @@ function registerLazyLoad(adUnitCode, auctionEndQueue) {
     }
 }
 
-function configAdUnitSlotLazyLoad(googleSlot, config) {
+function streamampConfigAdUnitSlotLazyLoad(googleSlot, config) {
     if (config.GPTAsync === true) {
         googleSlot.lazyLoad = true;
         googleSlot.setCollapseEmptyDiv(false);
@@ -1417,53 +1317,53 @@ function configAdUnitSlotLazyLoad(googleSlot, config) {
     return googleSlot;
 }
 
-var auctionEndCallbacks = [];
-var auctionEndQueue = {
+var streamampAuctionEndCallbacks = [];
+var streamampAuctionEndQueue = {
     push: function (cb) {
         if (typeof cb === 'function') {
             pbjs.que.push(function () {
                 if (pbjs.isAuctionEnded) {
                     cb.call();
                 } else {
-                    auctionEndCallbacks.push(cb);
+                    streamampAuctionendcallbacks.push(cb);
                 }
             });
         } else {
-            utils.logError('Commands written into auctionEndQueue must be wrapped in a function');
+            streamampUtils.logError('Commands written into auctionEndQueue must be wrapped in a function');
         }
     }
 };
 
-function processAuctionEndQueue() {
-    auctionEndCallbacks.forEach(function (cb) {
+function streamampProcessAuctionEndQueue() {
+    streamampAuctionendcallbacks.forEach(function (cb) {
         if (typeof cb === 'function') {
             cb.call();
         } else {
-            utils.logError('Commands written into auctionEndQueue must be wrapped in a function');
+            streamampUtils.logError('Commands written into auctionEndQueue must be wrapped in a function');
         }
     });
-    auctionEndCallbacks = [];
+    streamampAuctionendcallbacks = [];
 }
 
 if (streamampConfig && streamampConfig.namespace) {
-    polyfills();
+    streamampPolyfills();
     
     window[streamampConfig.namespace] = window[streamampConfig.namespace] || {};
     window[streamampConfig.namespace].que = window[streamampConfig.namespace].que || [];
     
     window[streamampConfig.namespace] = factory(streamampConfig);
     
-    processQueue();
+    streamampProcessQueue();
 }
 
-function processQueue() {
+function streamampProcessQueue() {
     window[streamampConfig.namespace].que.forEach(function (cmd) {
         if (typeof cmd.called === 'undefined' && typeof cmd === 'function') {
             try {
                 cmd.call();
                 cmd.called = true;
             } catch (e) {
-                utils.logError('Error processing command :' + e.message);
+                streamampUtils.logError('Error processing command :' + e.message);
             }
         }
     });
@@ -1473,16 +1373,16 @@ function processQueue() {
             try {
                 cmd.call();
             } catch (e) {
-                utils.logError('Error processing command :' + e.message);
+                streamampUtils.logError('Error processing command :' + e.message);
             }
         } else {
-            utils.logError('Commands written into ', streamampConfig.namespace + '.cmd.push must be wrapped in a function');
+            streamampUtils.logError('Commands written into ', streamampConfig.namespace + '.cmd.push must be wrapped in a function');
         }
     }
     ;
 }
 
-function polyfills() {
+function streamampPolyfills() {
     if (!String.prototype.endsWith) {
         String.prototype.endsWith = function (search, this_len) {
             if (this_len === undefined || this_len > this.length) {
@@ -1621,8 +1521,8 @@ function polyfills() {
     };
 }
 
-function createAPSAdUnits(adUnitsGPT) {
-    var label = getBreakpoint().label
+function streamampCreateAPSAdUnits(adUnitsGPT) {
+    var label = streamampGetBreakpoint().label
     var googleSizes = [[320, 100], [970, 90], [468, 60], [120, 600]]
     
     function filterGoogleSize(adUnits) {
@@ -1641,6 +1541,18 @@ function createAPSAdUnits(adUnitsGPT) {
             sizes: filterGoogleSize(adUnit.breakpoints[label]),
         }
     });
-    
     return apstagSlots
+}
+
+window.streamamp = {
+    refreshAllBids: streamampRefreshBids,
+    refreshBids: function (selectedAdUnits) {
+        streamampRefreshBids(selectedAdUnits)
+    },
+    destroySlots: function (selectedAdUnits) {
+        streamampDestroySlots(selectedAdUnits)
+    },
+    initialize: streamampInit,
+    auctioneEndQue: streamampAuctionEndQueue,
+    que: window[streamampConfig.namespace].que
 }
