@@ -255,7 +255,9 @@ var googletag = googletag || {};
 googletag.cmd = googletag.cmd || [];
 
 window.AD_UNITS_TOGGLE_OFF = window.AD_UNITS_TOGGLE_OFF || [];
+streamampUtils.log('AD_UNITS_TOGGLE_OFF is', window.AD_UNITS_TOGGLE_OFF)
 window.AD_UNITS_TOGGLE_ON = window.AD_UNITS_TOGGLE_ON || [];
+streamampUtils.log('AD_UNITS_TOGGLE_ON is ', window.AD_UNITS_TOGGLE_ON)
 
 //-----------------------------
 
@@ -638,7 +640,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
                 slots: adUnitsAPS,
                 timeout: bidTimeout
             }, function (bids) {
-                streamampUtils.logAps('Bids received', bids)
+                streamampUtils.logAps('Bids received (all)', bids, '(filtered out)', bids.filter(function(bid) { return bid.amzniid }))
                 headerBidderBack('a9');
             });
         }
@@ -1056,9 +1058,13 @@ function streamampAddDNSPrefetch(urls) {
 
 function streamampShouldShowAddUnit(adUnitCode) {
     if (window.AD_UNITS_TOGGLE_ON.length) {
-        return window.AD_UNITS_TOGGLE_ON.indexOf(adUnitCode) !== -1;
+        var toggleOn = window.AD_UNITS_TOGGLE_ON.indexOf(adUnitCode) !== -1;
+        toggleOn ? streamampUtils.log('Ad unit', adUnitCode, 'is in AD_UNITS_TOGGLE_ON and should be shown') : null;
+        return toggleOn;
     } else {
-        return window.AD_UNITS_TOGGLE_OFF.indexOf(adUnitCode) === -1;
+        var toggleOff = window.AD_UNITS_TOGGLE_OFF.indexOf(adUnitCode) === -1;
+        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_ON and should be shown') : null;
+        return toggleOff;
     }
 }
 
@@ -1223,7 +1229,7 @@ function streamampRefreshBids(selectedAdUnits) {
             slots: apstagSlots,
             timeout: bidTimeout
         }, function (bids) {
-            streamampUtils.logAps('Bids received', bids)
+            streamampUtils.logAps('Bids received (all)', bids, '(filtered out)', bids.filter(function(bid) { return bid.amzniid }))
         });
     }
     googletag.cmd.push(function () {
