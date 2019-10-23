@@ -1,14 +1,14 @@
 // StreamAMP Header Bidder v1
 
-var isClientDebugModeOn;
+var isStreamampDebugModeOn;
 
-function isClientDebugMode() {
-    if (isClientDebugModeOn !== undefined) {
-        return isClientDebugModeOn;
+function isStreamampDebugMode() {
+    if (isStreamampDebugModeOn !== undefined) {
+        return isStreamampDebugModeOn;
     }
     
     var url = window.location.href;
-    var name = 'client_debug';
+    var name = 'streamamp_debug';
     var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
     var results = regex.exec(url);
     if (!results) {
@@ -69,7 +69,7 @@ var streamampUtils = {
         
         return keyValue;
     },
-    isClientDebugMode: isClientDebugMode,
+    isStreamampDebugMode: isStreamampDebugMode,
     styleDebugLog: function (type, arguments) {
         arguments = Array.from(arguments)
         var typeTextColor
@@ -104,28 +104,28 @@ var streamampUtils = {
         return arguments
     },
     log: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('debug', arguments));
         }
     },
     logPbjs: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('pbjs', arguments));
         }
     },
     logGpt: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('gpt', arguments));
         }
     },
     logAps: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('aps', arguments));
         }
     },
     
     logError: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.error.apply(this, streamampUtils.styleDebugLog('error', arguments));
         } else {
             console.error.apply(this, arguments);
