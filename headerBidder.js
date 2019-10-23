@@ -46,7 +46,9 @@ var streamampUtils = {
             width = topWindow.document.body.clientWidth;
         }
         
-        return Math.min(width, outerWidth);
+        var minWidth = Math.min(width, outerWidth)
+        streamampUtils.log('Getting browser width', minWidth);
+        return minWidth;
     },
     loadScript: function (url) {
         var scriptEl = document.createElement('script');
@@ -68,13 +70,66 @@ var streamampUtils = {
         return keyValue;
     },
     isClientDebugMode: isClientDebugMode,
-    log: function () {
+    styleDebugLog: function (type, arguments) {
+        arguments = Array.from(arguments)
+        var typeTextColor
+        switch (type) {
+            case 'pbjs':
+                typeTextColor = '#3B88C3;';
+                break;
+            case 'gpt':
+                typeTextColor = '#1E8E3E;';
+                break;
+            case 'aps':
+                typeTextColor = '#FF9900;';
+                break;
+            default:
+                typeTextColor = '';
+        }
+    
+        arguments.unshift('font-family: sans-serif; font-weight: bold; color: ' + typeTextColor + '; padding: 1px 0;')
+        
+        // if (type === 'debug') {
+        //     arguments.unshift('font-family: sans-serif; font-weight: bold; padding: 1px 0;')
+        // } else if (type === 'gpt') {
+        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #1E8E3E; padding: 1px 0;')
+        // } else if (type === 'aps') {
+        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FF9900; padding: 1px 0;')
+        // } else if (type === 'pbjs') {
+        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #3B88C3; padding: 1px 0;')
+        // }
+        arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FFF; background: #2F0D00; padding: 1px 3px; margin: 2px 0; border-radius: 3px;')
+        arguments.unshift('font-family: sans-serif; font-weight: bold; color: #2F0D00; padding: 1px 0; margin: 2px')
+        arguments.unshift('%cSTREAM%cAMP' + '%c  ' + type.toUpperCase() + ': ')
+        return arguments
+    },
+    log: function() {
         if (isClientDebugMode()) {
-            console.log.apply(this, arguments);
+            console.log.apply(this, streamampUtils.styleDebugLog('debug', arguments));
         }
     },
-    logError: function () {
-        console.error.apply(this, arguments);
+    logPbjs: function() {
+        if (isClientDebugMode()) {
+            console.log.apply(this, streamampUtils.styleDebugLog('pbjs', arguments));
+        }
+    },
+    logGpt: function() {
+        if (isClientDebugMode()) {
+            console.log.apply(this, streamampUtils.styleDebugLog('gpt', arguments));
+        }
+    },
+    logAps: function() {
+        if (isClientDebugMode()) {
+            console.log.apply(this, streamampUtils.styleDebugLog('aps', arguments));
+        }
+    },
+    
+    logError: function() {
+        if (isClientDebugMode()) {
+            console.error.apply(this, streamampUtils.styleDebugLog('error', arguments));
+        } else {
+            console.error.apply(this, arguments);
+        }
     },
     stickyAd: function (adUnits) {
         var stickyAdUnits = adUnits.filter(function (adUnit) {
@@ -114,12 +169,15 @@ var streamampUtils = {
             
             if (stickyAdPosition === 'bl') {
                 // bottom left
+                streamampUtils.log('Applying styles for sticky ad unit', { code: adUnitCode, position: 'bottom left' });
                 adContainer.style.left = '0px';
             } else if (stickyAdPosition === 'br') {
                 // bottom right
+                streamampUtils.log('Applying styles for sticky ad unit', { code: adUnitCode, position: 'bottom right' });
                 adContainer.style.right = '0px';
             } else {
                 // default to be bottom center
+                streamampUtils.log('Applying styles for sticky ad unit', { code: adUnitCode, position: 'bottom center' });
                 adContainer.style.transform = 'translate(-50%, 0%)';
                 adContainer.style.left = '50%';
             }
@@ -162,6 +220,7 @@ function streamampSplitHostname() {
     result.domain = urlParts[1];
     result.type = urlParts[2];
     result.subdomain = window.location.hostname.replace(result.domain + '.' + result.type, '').slice(0, -1);
+    streamampUtils.log('Splitting host name', result)
     return result;
 }
 
@@ -171,6 +230,7 @@ if (streamampSplitHostname().domain === 'road') {
 } else {
     publisher = streamampSplitHostname().domain
 }
+streamampUtils.log('Setting publisher as', publisher)
 
 // -------------- Global Variables -----------
 
@@ -214,6 +274,7 @@ if (publisher) {
 
 // streamampSetup
 function streamampSetup() {
+    streamampUtils.log('Running setup()')
     /* ------set up global variable ------ */
     var adUnits = streamampConfig.adUnits
     var levels = window.location.pathname.split('/').filter(function (level) {
@@ -229,6 +290,7 @@ function streamampSetup() {
     
     // Load apstag library
     if (streamampConfig.a9Enabled) {
+        streamampUtils.logAps('APS/A9 enabled, loading apstag library apstag.js')
         !function (a9, a, p, s, t, A, g) {
             if (a[a9])
                 return;
@@ -282,6 +344,7 @@ function streamampSetup() {
     // Toggle off URLS
     if (streamampConfig.toggleOffUrls) {
         streamampConfig.toggleOffUrls.forEach(function (url) {
+            
             var level = url.level;
             var path = url.url;
             var levelsKeys = [];
@@ -305,6 +368,7 @@ function streamampSetup() {
     
     // Enable Analytics Module
     pbjs.que.push(function () {
+        streamampUtils.logPbjs('Queuing enableAnalytics()')
         pbjs.enableAnalytics({
             provider: 'streamamp',
             options: {
@@ -327,6 +391,7 @@ function streamampSetup() {
             })
         })
         if (alias.length !== 0) {
+                streamampUtils.logPbjs('Queuing aliasbidder() for', alias)
             alias.forEach(function (name) {
                 pbjs.aliasBidder('appnexus', name)
             })
@@ -338,6 +403,7 @@ function streamampSetup() {
         var currencyValue = streamampConfig.currency.value;
         var currencyFlag = streamampConfig.currency.enabled;
         var currencyFileURL = 'https://static.amp.services/currency/conversion-rates.json';
+        streamampUtils.logPbjs('Queuing setConfig() for consent management')
         pbjs.setConfig({
             consentManagement: {
                 cmpApi: 'iab',
@@ -345,6 +411,7 @@ function streamampSetup() {
                 allowAuctionWithoutConsent: true
             }
         });
+        streamampUtils.logPbjs('Queuing setConfig() for filter settings')
         pbjs.setConfig({
             filterSettings: {
                 iframe: {
@@ -353,12 +420,15 @@ function streamampSetup() {
                 }
             }
         });
+        streamampUtils.logPbjs('Queuing setConfig() for price granularity')
         pbjs.setConfig({
             priceGranularity: generatePriceGranularity(streamampConfig.pbjsPriceGranularity)
         });
+        streamampUtils.logPbjs('Queuing setConfig() for bidder timeout', streamampConfig.bidTimeout)
         pbjs.setConfig({
-            bidderTimeout: streamampConfig.biddingTimeout
+            bidderTimeout: streamampConfig.bidTimeout
         });
+        streamampUtils.logPbjs('Queuing setConfig() for size config (breakpoints)', streamampConfig.breakpoints.map(function(breakpoint) { return breakpoint.label }))
         pbjs.setConfig({
             sizeConfig: streamampConfig.breakpoints.map(function (breakpoint) {
                 return {
@@ -367,9 +437,10 @@ function streamampSetup() {
                     'labels': [breakpoint.label],
                 }
             })
-        })
+        });
         
         if (currencyFlag && currencyValue.length !== 0) {
+            streamampUtils.logPbjs('Queuing setConfig() for currency. Ad server currency is', currencyValue)
             if (currencyValue === 'JPY') {
                 pbjs.setConfig({
                     currency: {
@@ -388,6 +459,7 @@ function streamampSetup() {
                 });
             }
         } else {
+            streamampUtils.logPbjs('Queuing setConfig() for currency. Ad server currency is USD')
             pbjs.setConfig({
                 currency: {
                     adServerCurrency: 'USD',
@@ -405,6 +477,7 @@ function streamampSetup() {
 
 // Init Auction
 function streamampInit() {
+    streamampUtils.log('Running init()')
     pbjs.isAuctionEnded = false;
     
     // Initialize CMP if enabled
@@ -413,7 +486,7 @@ function streamampInit() {
     };
     
     if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
-        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Fire beforeInit event');
+        streamampUtils.log('Firing beforeInit event', streamampConfig.beforeInit);
         streamampConfig.beforeInit();
     }
     // filters ad units for current break points - removing unnecessary bidders
@@ -421,7 +494,7 @@ function streamampInit() {
     
     var adUnitsAPS
     if (streamampConfig.a9Enabled) {
-        // takes the filterd ad units and generates aps ad units
+        // takes the filtered ad units and generates aps ad units
         adUnitsAPS = streamampCreateAPSAdUnits(adUnitsGPT);
     }
     
@@ -430,7 +503,6 @@ function streamampInit() {
         var oldAdUnitCodes = pbjs.adUnits.map(function (adUnit) {
             return adUnit.code;
         });
-        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Remove previous Ad Unit Slots', oldAdUnitCodes);
         streamampDestroySlots(oldAdUnitCodes);
     }
     googletag.cmd.push(function () {
@@ -444,20 +516,20 @@ function streamampInit() {
             streamampDefineAdUnitSlot(adUnit, predefinedSlotIds)
         });
         
+        streamampUtils.logGpt('Enabling single request (SRA)');
         googletag.pubads().enableSingleRequest();
-        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Enable single request (SRA)');
         
         if (streamampConfig.hasCollapedEmptyDivs) {
+            streamampUtils.logGpt('Enabling collapse of empty ad divs');
             googletag.pubads().collapseEmptyDivs(true, true);
-            streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Enable collapse of empty ad');
         }
         
+        streamampUtils.logGpt('Enabling googletag service');
         googletag.enableServices();
-        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Enable googletag service');
     })
     
     if (streamampConfig.afterInit && typeof streamampConfig.afterInit === 'function') {
-        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Fire afterInit event');
+        streamampUtils.log('Firing afterInit event', streamampConfig.afterInit);
         streamampConfig.afterInit();
     }
     
@@ -472,12 +544,17 @@ function streamampInit() {
 function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
     
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
+    streamampUtils.log('Setting the bid timeout', bidTimeout)
+    
+    
     // Declare header bidders
     var bidders = ['prebid'];
     
     if (streamampConfig.a9Enabled) {
         bidders = ['a9', 'prebid'];
     }
+    
+    streamampUtils.log('Fetching header bids for bidders', bidders)
     
     // Keep track of bidders state to determine when to send ad server request
     var requestManager = {
@@ -497,6 +574,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
             })// Remove false values - indicates that the bidder has responded
             .filter(Boolean)// If length is equal to bidders, all bidders are back
             .length === bidders.length;
+        streamampUtils.log('Checking if all bidders are back', allBiddersBack)
         return allBiddersBack;
     }
     
@@ -508,10 +586,13 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
         }
         // Flip bidders back
         if (bidder === 'a9') {
+            streamampUtils.logAps('Handling header bidder back for A9/APS')
             requestManager.a9 = true;
         } else if (bidder === 'prebid') {
+            streamampUtils.logPbjs('Handling header bidder back for Prebid')
             requestManager.prebid = true;
         }
+        
         // If all bidders are back, send the request to the ad server
         if (allBiddersBack()) {
             sendAdServerRequest();
@@ -535,12 +616,15 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
             
             if (streamampConfig.a9Enabled) {
                 apstag.setDisplayBids();
+                streamampUtils.logAps('Setting display bids')
             }
             pbjs.que.push(function () {
+                streamampUtils.logPbjs('Queuing setTargetingForGPTAsync()')
                 pbjs.setTargetingForGPTAsync();
             });
             
             streamampAddClientTargeting();
+            streamampUtils.logGpt('Sending ad server request')
             googletag.pubads().refresh();
         });
     }
@@ -549,17 +633,21 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
     function requestBids(adUnitsGPT, adUnitsAPS, bidTimeout) {
         // Request bids from apstag
         if (streamampConfig.a9Enabled) {
+            streamampUtils.logAps('Fetching bids for', adUnitsAPS)
             apstag.fetchBids({
                 slots: adUnitsAPS,
                 timeout: bidTimeout
             }, function (bids) {
+                streamampUtils.logAps('Bids received', bids)
                 headerBidderBack('a9');
             });
         }
         
         // Request bids from prebid
         pbjs.que.push(function () {
+            streamampUtils.logPbjs('Queuing addAdUnits() for', adUnitsGPT)
             pbjs.addAdUnits(adUnitsGPT);
+            streamampUtils.logPbjs('Queuing requestBids()')
             pbjs.requestBids({
                 timeout: bidTimeout,
                 bidsBackHandler: function (bidResponses) {
@@ -583,6 +671,7 @@ function auction(adUnitsGPT, adUnitsAPS) {
     // Fetch header bids
     if (window.__cmp) {
         window.__cmp('getConsentData', null, function (data, success) {
+            streamampUtils.log('Getting CMP Consent Data', { data, success })
             streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS);
         });
     } else {
@@ -592,6 +681,7 @@ function auction(adUnitsGPT, adUnitsAPS) {
 
 // Function to initialize CMP
 function streamampInitializeCmp() {
+    streamampUtils.log('Initializing CMP')
     var elem = document.createElement('script');
     elem.src = 'https://quantcast.mgr.consensu.org/cmp.js';
     elem.async = true;
@@ -676,6 +766,7 @@ function streamampInitializeCmp() {
     
     // Apply custom CMP styles if true
     if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
+        streamampUtils.log('Applying custom CMP styles')
         var style = document.createElement('style');
         var ref = document.querySelector('script');
         
@@ -831,6 +922,7 @@ function isNotEmptyCmp(obj) {
 };
 
 function generatePriceGranularity(priceGranularity) {
+    streamampUtils.log('Setting price granularity to', priceGranularity)
     if (priceGranularity != 'custom') {
         return priceGranularity;
     }
@@ -870,12 +962,14 @@ function streamampConfigAdUnitSlotKeyValue(adUnitCode, googleSlot) {
             } else {
                 googleSlot = googleSlot.setTargeting(keyValue.name, []);
             }
+            streamampUtils.logGpt('Setting custom targeting', keyValue, 'for ad unit', adUnitCode);
         });
     }
     return googleSlot;
 }
 
 function streamampConfigSlotSafeFrame(googleSlot, adUnit) {
+    streamampUtils.logGpt('Setting forcee safe frame for ad unit', adUnit)
     return googleSlot.setForceSafeFrame(true)
 }
 
@@ -939,13 +1033,13 @@ function streamampDefineAdUnitSlot(adUnit, predefinedSlotId) {
     
     window.gptAdSlots[adUnit.code] = googleSlot;
     
-    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Define Ad unit slot, code:', adUnit.code, ', path:', adUnit.path, ', sizes:', JSON.stringify(adUnit.mediaTypes.banner.sizes));
-    
+    streamampUtils.logGpt('Defining ad unit slot', { code: adUnit.code, path: adUnit.path, sizes: JSON.stringify(adUnit.mediaTypes.banner.sizes) });
     return googleSlot;
 }
 
 function streamampAddDNSPrefetch(urls) {
     if (urls && urls.length) {
+        streamampUtils.log('Pre-fetching links', urls)
         var dnsPrefetchElement;
         var i;
         var node;
@@ -973,7 +1067,7 @@ function streamampInitAdServer() {
         return;
     }
     
-    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Initialise Ad Server, loading GoogleTag library gpt.js');
+    streamampUtils.logGpt('Initializing Ad Server, loading GoogleTag library gpt.js');
     var gptSrc = dnsUrls.gpt;
     streamampUtils.loadScript(gptSrc);
     window.pbjs.initAdserverSet = true;
@@ -981,7 +1075,8 @@ function streamampInitAdServer() {
 
 function streamampLoadPrebid() {
     if (!window.pbjs || !window.pbjs.libLoaded) {
-        streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Loading bidder.js');
+        var prebidVersion = dnsUrls.prebid.split('/').filter(function(item) {return item.indexOf('prebid') != -1}).join('')
+        streamampUtils.logPbjs('Loading', prebidVersion);
         streamampUtils.loadScript(dnsUrls.prebid);
     }
 }
@@ -993,7 +1088,6 @@ function streamampAddClientTargeting() {
     var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
     
     if (clientConfig && clientConfig.targets) {
-        streamampUtils.log('Streamamp DEBUG:', 'Setting up custom targeting key-value:', clientConfig.targets);
         for (key in clientConfig.targets) {
             if (clientConfig.targets.hasOwnProperty(key)) {
                 keyValue = {
@@ -1004,7 +1098,9 @@ function streamampAddClientTargeting() {
                 
                 keyValue = streamampUtils.normalizeKeyValue(keyValue);
                 
+                streamampUtils.logGpt('Setting custom targeting.', keyValue);
                 googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
+                
             }
         }
     }
@@ -1034,12 +1130,12 @@ function streamampGetBreakpoint() {
         breakpoint = streamampConfig.breakpoints[i];
         
         if (browserWidth >= breakpoint.minWidth && browserWidth <= breakpoint.maxWidth) {
-            streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'We are using breakpoint ', [breakpoint.minWidth, breakpoint.maxWidth]);
             selectedBreakpoint = breakpoint;
             break;
         }
     }
     
+    streamampUtils.log('Getting current breakpoint:', selectedBreakpoint);
     return selectedBreakpoint;
 }
 
@@ -1066,13 +1162,13 @@ function streamampGetAdUnitsPerBreakpoint() {
             }
         }
     }
-    
+    streamampUtils.log('Filtering ad units for current breakpoint', filteredAdUnits)
     return filteredAdUnits;
 }
 
 function streamampDefineLazyAdUnits(gptSlots) {
     
-    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Defining lazy load google slots');
+    streamampUtils.log('Defining lazy load google slots for', gptSlots);
     
     var predefinedSlotIds = gptSlots.map(function (slot) {
         return slot.getSlotElementId();
@@ -1090,7 +1186,7 @@ function streamampDefineLazyAdUnits(gptSlots) {
             return definedAdUnits.indexOf(adUnit.code) === -1;
         });
         
-        streamampUtils.log(config.client, 'DEBUG:', 'Add new Ad Units', adUnitsGPT.map(function (adUnit) {
+        streamampUtils.logPbjs('Adding new ad units', adUnitsGPT.map(function (adUnit) {
             return adUnit.code;
         }));
         pbjs.addAdUnits(adUnitsGPT);
@@ -1127,6 +1223,7 @@ function streamampRefreshBids(selectedAdUnits) {
             slots: apstagSlots,
             timeout: bidTimeout
         }, function (bids) {
+            streamampUtils.logAps('Bids received', bids)
         });
     }
     googletag.cmd.push(function () {
@@ -1185,7 +1282,11 @@ function streamampRefresh (selectedAdUnits) {
     function generateRefreshTimeout() {
         var min = +streamampConfig.minRefreshTime || 60;
         var max = +streamampConfig.maxRefreshTime || 90;
-        return (Math.floor(Math.random() * (max - min)) + min) * 1e3;
+        var refreshTimeout = (Math.floor(Math.random() * (max - min)) + min) * 1e3;
+        
+        // TODO:
+        // streamampUtils.log('Setting refresh', { selectedAdUnits, refreshTimeout });
+        return refreshTimeout;
     }
     
     var refreshAds = function () {
@@ -1210,7 +1311,7 @@ function streamampRefresh (selectedAdUnits) {
 };
 
 function streamampDestroySlots(adUnitCodes) {
-    streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Destory Ad Unit slots ', adUnitCodes);
+    streamampUtils.log('Destroying ad unit slots', adUnitCodes);
     
     var adUnitSlots = adUnitCodes.reduce(function (slots, adUnitCode) {
         slots.push(window.gptAdSlots[adUnitCode]);
@@ -1218,12 +1319,14 @@ function streamampDestroySlots(adUnitCodes) {
     }, []);
     
     pbjs.que.push(function () {
+        streamampUtils.logPbjs('Queuing removal of', adUnitCodes, 'from pbjs.adUnits')
         pbjs.adUnits = pbjs.adUnits.filter(function (adUnit) {
             return adUnitCodes.indexOf(adUnit.code) === -1;
         });
     });
     
     googletag.cmd.push(function () {
+        streamampUtils.logGpt('Queuing destroySlots() for', adUnitSlots)
         googletag.destroySlots(adUnitSlots);
         adUnitSlots.forEach(function (adUnitCode) {
             delete window.gptAdSlots[adUnitCode];
@@ -1531,6 +1634,7 @@ function streamampCreateAPSAdUnits(adUnitsGPT) {
             return !googleSizejson.includes(JSON.stringify(adUnit))
         })
         
+        streamampUtils.logAps('Filtering out Google sizes')
         return filterGoogleSizes
     }
     
@@ -1541,6 +1645,8 @@ function streamampCreateAPSAdUnits(adUnitsGPT) {
             sizes: filterGoogleSize(adUnit.breakpoints[label]),
         }
     });
+    
+    streamampUtils.logAps('Generating apstag slots', apstagSlots)
     return apstagSlots
 }
 
