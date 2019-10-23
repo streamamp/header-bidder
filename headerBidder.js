@@ -70,6 +70,15 @@ var streamampUtils = {
         return keyValue;
     },
     isStreamampDebugMode: isStreamampDebugMode,
+    // streamampDebug: function (boolean) {
+    //     if (boolean === true) {
+    //         isStreamampDebugModeOn = true
+    //     } else if (boolean === false) {
+    //         isStreamampDebugModeOn = false
+    //     } else {
+    //         streamampUtils.logError('The streamampDebug() function must be passed a boolean argument')
+    //     }
+    // },
     styleDebugLog: function (type, arguments) {
         arguments = Array.from(arguments)
         
@@ -205,8 +214,6 @@ var streamampUtils = {
         }
     }
 };
-
-streamampUtils.logError('Test log error')
 
 // setting publisher
 var publisher;
