@@ -766,11 +766,11 @@ function streamampInitializeCmp() {
     
     // Apply custom CMP styles if true
     if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
-        streamampUtils.log('Applying custom CMP styles')
         var style = document.createElement('style');
         var ref = document.querySelector('script');
         
         var quantcastTheme = streamampConfig.cmp.styles;
+        streamampUtils.log('Applying custom CMP styles', quantcastTheme)
         
         style.innerHTML =
             // Background
