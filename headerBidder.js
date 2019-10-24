@@ -239,9 +239,11 @@ streamampUtils.log('Setting publisher as', publisher)
 
 // -------------- Global Variables -----------
 
+var prebidVersion = '2.35.0'
+
 var dnsUrls = {
     a9: 'https://c.amazon-adsystem.com/aax2/apstag.js',
-    prebid: 'https://static.amp.services/prebid2.35.0.js',
+    prebid: 'https://static.amp.services/prebid' + prebidVersion + '.js',
     gpt: 'https://securepubads.g.doubleclick.net/tag/js/gpt.js',
     config: 'https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/' + publisher + '.min.js'
 };
@@ -622,8 +624,8 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
         googletag.cmd.push(function () {
             
             if (streamampConfig.a9Enabled) {
-                apstag.setDisplayBids();
                 streamampUtils.logAps('Setting display bids')
+                apstag.setDisplayBids();
             }
             pbjs.que.push(function () {
                 streamampUtils.logPbjs('Queuing setTargetingForGPTAsync()')
@@ -1068,7 +1070,7 @@ function streamampShouldShowAddUnit(adUnitCode) {
         return toggleOn;
     } else {
         var toggleOff = window.AD_UNITS_TOGGLE_OFF.indexOf(adUnitCode) === -1;
-        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_ON and should be shown') : null;
+        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_OFF and should be shown') : null;
         return toggleOff;
     }
 }
@@ -1086,8 +1088,7 @@ function streamampInitAdServer() {
 
 function streamampLoadPrebid() {
     if (!window.pbjs || !window.pbjs.libLoaded) {
-        var prebidVersion = dnsUrls.prebid.split('/').filter(function(item) {return item.indexOf('prebid') != -1}).join('')
-        streamampUtils.logPbjs('Loading', prebidVersion);
+        streamampUtils.logPbjs('Loading Prebid.js version', prebidVersion);
         streamampUtils.loadScript(dnsUrls.prebid);
     }
 }
@@ -1146,7 +1147,7 @@ function streamampGetBreakpoint() {
         }
     }
     
-    streamampUtils.log('Getting current breakpoint:', selectedBreakpoint);
+    streamampUtils.log('Getting current breakpoint', selectedBreakpoint);
     return selectedBreakpoint;
 }
 
@@ -1209,6 +1210,7 @@ function streamampDefineLazyAdUnits(gptSlots) {
 }
 
 function streamampRefreshBids(selectedAdUnits) {
+    streamampUtils.log(selectedAdUnits ? ('Refreshing', selectedAdUnits) :'Refreshing all ad units')
     
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
     var gptSlots = streamampGetAdUnitsPerBreakpoint();
@@ -1230,6 +1232,7 @@ function streamampRefreshBids(selectedAdUnits) {
     }
     
     if (streamampConfig.a9Enabled) {
+        streamampUtils.logAps('Fetching bids for', apstagSlots)
         apstag.fetchBids({
             slots: apstagSlots,
             timeout: bidTimeout
@@ -1269,16 +1272,20 @@ function streamampRefreshBids(selectedAdUnits) {
         }
         
         pbjs.que.push(function () {
+            streamampUtils.logPbjs('Queuing requestBids()')
             pbjs.requestBids({
                 timeout: bidTimeout,
                 adUnitCodes: slotIds,
                 bidsBackHandler: function () {
                     streamampAddClientTargeting();
+                    streamampUtils.logPbjs('Queuing setTargetingForGPTAsync() for', slotIds)
                     pbjs.setTargetingForGPTAsync(slotIds);
+                    streamampUtils.logGpt('Sending ad server request for', adUnitsToRefresh)
                     googletag.pubads().refresh(adUnitsToRefresh);
                 },
             })
             if (streamampConfig.a9Enabled) {
+                streamampUtils.logAps('Setting display bids')
                 apstag.setDisplayBids();
             }
         });
@@ -1293,14 +1300,13 @@ function streamampRefresh (selectedAdUnits) {
     function generateRefreshTimeout() {
         var min = +streamampConfig.minRefreshTime || 60;
         var max = +streamampConfig.maxRefreshTime || 90;
-        var refreshTimeout = (Math.floor(Math.random() * (max - min)) + min) * 1e3;
-        
-        // TODO:
-        // streamampUtils.log('Setting refresh', { selectedAdUnits, refreshTimeout });
-        return refreshTimeout;
+        return (Math.floor(Math.random() * (max - min)) + min) * 1e3;
     }
     
     var refreshAds = function () {
+        var refreshTimeout = generateRefreshTimeout()
+        streamampUtils.log('Setting refresh', { selectedAdUnits: (selectedAdUnits ? selectedAdUnits : 'all'), refreshTimeout: refreshTimeout / 1e3 + ' seconds' });
+        
         if (window.adRefreshTimer) {
             window.clearInterval(window.adRefreshTimer);
         }
@@ -1308,7 +1314,7 @@ function streamampRefresh (selectedAdUnits) {
             if (streamampConfig.hasRefreshBids) {
                 streamampRefreshBids(selectedAdUnits);
             }
-        }, generateRefreshTimeout());
+        }, refreshTimeout);
     };
     refreshAds();
     
@@ -1316,6 +1322,7 @@ function streamampRefresh (selectedAdUnits) {
         refreshAds();
     };
     window.onblur = function () {
+        streamampUtils.log('Refresh paused (interval cleared) due to window.onblur');
         window.clearInterval(window.adRefreshTimer);
         window.adRefreshTimer = null;
     };
@@ -1662,12 +1669,39 @@ function streamampCreateAPSAdUnits(adUnitsGPT) {
 }
 
 window.streamamp = {
-    refreshAllBids: streamampRefreshBids,
+    refreshAllBids: function() {
+        streamampUtils.log('window.streamamp.refreshAllBids() was called')
+        streamampRefreshBids()
+    },
     refreshBids: function (selectedAdUnits) {
-        streamampRefreshBids(selectedAdUnits)
+        if (selectedAdUnits.length > 0) {
+            streamampUtils.log('window.streamamp.refreshBids() was called with', selectedAdUnits, 'ad unit(s)')
+            streamampRefreshBids(selectedAdUnits)
+        } else {
+            streamampUtils.logError('refreshBids() must be passed an array of strings or a single string')
+        }
     },
     destroySlots: function (selectedAdUnits) {
         streamampDestroySlots(selectedAdUnits)
     },
-    initialize: streamampInit
+    initialize: function() {
+        streamampUtils.log('window.streamamp.initialize() was called')
+        streamampInit()
+    },
+    reloadWithDebugModes: function(mode) {
+        if (mode === 'all') {
+            window.location.replace(window.location.origin + '/?streamamp_debug=true&pbjs_debug=true')
+        } else if (mode === 'amp' || mode === 'streamamp') {
+            window.location.replace(window.location.origin + '/?streamamp_debug=true')
+        } else if (mode === 'pbjs' || mode === 'prebid') {
+            window.location.replace(window.location.origin + '/?pbjs_debug=true')
+        }  else if (mode === 'none') {
+            window.location.replace(window.location.origin)
+        } else {
+            streamampUtils.logError('enableDebugModes() must be passed a string of \'all\', \'streamamp\', \'amp\', \'prebid\' or \'pbjs\'')
+        }
+    },
+    reloadWithoutDebugModes: function() {
+        window.location.replace(window.location.origin)
+    }
 }
