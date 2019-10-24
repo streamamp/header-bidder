@@ -6,7 +6,7 @@ function isClientDebugMode() {
     if (isClientDebugModeOn !== undefined) {
         return isClientDebugModeOn;
     }
-    
+
     var url = window.location.href;
     var name = 'client_debug';
     var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
@@ -32,12 +32,12 @@ var streamampUtils = {
     },
     getBrowserWidth: function () {
         var width;
-        
+
         var topWindow = window.top || window;
-        
+
         // if outer width is undefined or 0. 10000 is out of the breakpoint interval
         var outerWidth = topWindow.outerWidth || 10000;
-        
+
         if (topWindow.innerWidth !== undefined) {
             width = topWindow.innerWidth;
         } else if (topWindow.document.documentElement !== undefined && topWindow.document.documentElement.clientWidth !== undefined && topWindow.document.documentElement.clientWidth != 0) {
@@ -45,7 +45,7 @@ var streamampUtils = {
         } else {
             width = topWindow.document.body.clientWidth;
         }
-        
+
         var minWidth = Math.min(width, outerWidth)
         streamampUtils.log('Getting browser width', minWidth);
         return minWidth;
@@ -55,7 +55,7 @@ var streamampUtils = {
         scriptEl.type = 'text/javascript';
         scriptEl.async = true;
         scriptEl.src = url;
-        
+
         var node = document.getElementsByTagName('script')[0];
         node.parentNode.insertBefore(scriptEl, node);
     },
@@ -66,7 +66,7 @@ var streamampUtils = {
                 keyValue.value = undefined;
             }
         }
-        
+
         return keyValue;
     },
     isClientDebugMode: isClientDebugMode,
@@ -86,9 +86,9 @@ var streamampUtils = {
             default:
                 typeTextColor = '';
         }
-    
+
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: ' + typeTextColor + '; padding: 1px 0;')
-        
+
         // if (type === 'debug') {
         //     arguments.unshift('font-family: sans-serif; font-weight: bold; padding: 1px 0;')
         // } else if (type === 'gpt') {
@@ -123,7 +123,7 @@ var streamampUtils = {
             console.log.apply(this, streamampUtils.styleDebugLog('aps', arguments));
         }
     },
-    
+
     logError: function() {
         if (isClientDebugMode()) {
             console.error.apply(this, streamampUtils.styleDebugLog('error', arguments));
@@ -135,11 +135,11 @@ var streamampUtils = {
         var stickyAdUnits = adUnits.filter(function (adUnit) {
             return adUnit.isSticky === true;
         });
-        
+
         if (stickyAdUnits.length === 0) {
             return;
         }
-        
+
         googletag.cmd.push(function () {
             googletag.pubads().addEventListener('slotRenderEnded', function (e) {
                 if (!e.isEmpty) {
@@ -155,9 +155,9 @@ var streamampUtils = {
     applyStyle: function (adUnit) {
         var adUnitCode = adUnit.code;
         var stickyAdPosition = adUnit.stickyAdPosition;
-        
+
         var adContainer = document.getElementById(adUnitCode);
-        
+
         if (adContainer) {
             adContainer.style.backgroundColor = 'rgba(237, 237, 237, 0.82)';
             adContainer.style.position = 'fixed';
@@ -166,7 +166,7 @@ var streamampUtils = {
             adContainer.style.zIndex = '9999';
             adContainer.style.width = '100%';
             adContainer.style.textAlign = 'center';
-            
+
             if (stickyAdPosition === 'bl') {
                 // bottom left
                 streamampUtils.log('Applying styles for sticky ad unit', { code: adUnitCode, position: 'bottom left' });
@@ -181,9 +181,9 @@ var streamampUtils = {
                 adContainer.style.transform = 'translate(-50%, 0%)';
                 adContainer.style.left = '50%';
             }
-            
+
             adContainer.style.display = '';
-            
+
             var closeAdButton = document.createElement('img');
             closeAdButton.id = "close-button";
             closeAdButton.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDYxMiA2MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYxMiA2MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8cG9seWdvbiBwb2ludHM9IjQyNC4wMzIsNDQzLjcgNDQzLjcsNDI0LjAzMiAzMjUuNjY3LDMwNiA0NDMuNywxODcuOTY3IDQyNC4wMzIsMTY4LjMgMzA2LDI4Ni4zMzMgMTg3Ljk2NywxNjguMyAxNjguMywxODcuOTY3ICAgICAyODYuMzMzLDMwNiAxNjguMyw0MjQuMDMyIDE4Ny45NjcsNDQzLjcgMzA2LDMyNS42NjcgICAiIGZpbGw9IiMwMDAwMDAiLz4KCQk8cGF0aCBkPSJNNjEyLDMwNkM2MTIsMTM3LjAwNCw0NzQuOTk1LDAsMzA2LDBDMTM3LjAwNCwwLDAsMTM3LjAwNCwwLDMwNmMwLDE2OC45OTUsMTM3LjAwNCwzMDYsMzA2LDMwNiAgICBDNDc0Ljk5NSw2MTIsNjEyLDQ3NC45OTUsNjEyLDMwNnogTTI3LjgxOCwzMDZDMjcuODE4LDE1Mi4zNiwxNTIuMzYsMjcuODE4LDMwNiwyNy44MThTNTg0LjE4MiwxNTIuMzYsNTg0LjE4MiwzMDYgICAgUzQ1OS42NCw1ODQuMTgyLDMwNiw1ODQuMTgyUzI3LjgxOCw0NTkuNjQsMjcuODE4LDMwNnoiIGZpbGw9IiMwMDAwMDAiLz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
@@ -192,16 +192,16 @@ var streamampUtils = {
             closeAdButton.style.right = "3px";
             closeAdButton.style.maxWidth = "24px";
             closeAdButton.style.maxHeight = "24px";
-            
+
             // add button event
             closeAdButton.onclick = function () {
                 adContainer.style.display = 'none';
             }
             ;
             adContainer.appendChild(closeAdButton);
-            
+
             var frame = document.getElementById("google_ads_iframe_/5548363/StreamAMP_1x1_0");
-            
+
             if (frame && frame.contentWindow.length) {
                 document.getElementById("StreamAMP_1x1").style.backgroundColor = "";
                 document.getElementById("close-button").style.display = "none";
@@ -283,24 +283,24 @@ function streamampSetup() {
         return level !== '';
     });
     /* ----------------------------------- */
-    
+
     // initialize GPT
     streamampInitAdServer();
-    
+
     // initialize Prebid
     streamampLoadPrebid();
-    
+
     // Load apstag library
     if (streamampConfig.a9Enabled) {
         streamampUtils.logAps('APS/A9 enabled, loading apstag library apstag.js')
         !function (a9, a, p, s, t, A, g) {
             if (a[a9])
                 return;
-            
+
             function q(c, r) {
                 a[a9]._Q.push([c, r])
             }
-            
+
             a[a9] = {
                 init: function () {
                     q("i", arguments)
@@ -320,18 +320,18 @@ function streamampSetup() {
             g = p.getElementsByTagName(s)[0];
             g.parentNode.insertBefore(A, g)
         }("apstag", window, document, "script", "//c.amazon-adsystem.com/aax2/apstag.js");
-        
+
         apstag.init({
             pubID: streamampConfig.apsPubID,
             adServer: 'googletag'
         });
     }
-    
+
     // disables initial load
     googletag.cmd.push(function () {
         googletag.pubads().disableInitialLoad();
     });
-    
+
     // Level Targeting
     if (streamampConfig.levelTargeting) {
         for (var levelIndex = 1; levelIndex < 6; levelIndex++) {
@@ -342,24 +342,24 @@ function streamampSetup() {
             });
         }
     }
-    
+
     // Toggle off URLS
     if (streamampConfig.toggleOffUrls) {
         streamampConfig.toggleOffUrls.forEach(function (url) {
-            
+
             var level = url.level;
             var path = url.url;
             var levelsKeys = [];
-            
+
             levelsKeys.push(level);
-            
+
             var toggleOff = false;
             levelsKeys.forEach(function (levelKey) {
                 if (levels && levels[levelKey - 1] && levels[levelKey - 1].toLowerCase() === path.toLowerCase()) {
                     toggleOff = true;
                 }
             })
-            
+
             if (toggleOff) {
                 window.streamampConfig.adUnits.forEach(function (adUnit) {
                     adUnit.bids = []
@@ -367,7 +367,7 @@ function streamampSetup() {
             }
         })
     }
-    
+
     // Enable Analytics Module
     pbjs.que.push(function () {
         streamampUtils.logPbjs('Queuing enableAnalytics()')
@@ -379,7 +379,7 @@ function streamampSetup() {
             }
         });
     });
-    
+
     pbjs.que.push(function () {
         // Set Aliased bidders
         let alias = []
@@ -399,7 +399,7 @@ function streamampSetup() {
             })
         }
     });
-    
+
     // PBJS Config Settings
     pbjs.que.push(function () {
         var currencyValue = streamampConfig.currency.value;
@@ -422,6 +422,19 @@ function streamampSetup() {
                 }
             }
         });
+        streamampUtils.logPbjs('Queuing setConfig() for user ids')
+        pbjs.setConfig({
+            userSync: {
+                userIds: [{
+                    name: "pubCommonId",
+                    storage: {
+                        type: "cookie",
+                        name: "_pubCommonId",
+                        expires: 365
+                    }
+                }]
+            }
+        });
         streamampUtils.logPbjs('Queuing setConfig() for price granularity')
         pbjs.setConfig({
             priceGranularity: generatePriceGranularity(streamampConfig.pbjsPriceGranularity)
@@ -440,7 +453,7 @@ function streamampSetup() {
                 }
             })
         });
-        
+
         if (currencyFlag && currencyValue.length !== 0) {
             streamampUtils.logPbjs('Queuing setConfig() for currency. Ad server currency is', currencyValue)
             if (currencyValue === 'JPY') {
@@ -471,7 +484,7 @@ function streamampSetup() {
             });
         }
     });
-    
+
     if (!streamampConfig.preventInit) {
         streamampInit()
     }
@@ -481,25 +494,25 @@ function streamampSetup() {
 function streamampInit() {
     streamampUtils.log('Running init()')
     pbjs.isAuctionEnded = false;
-    
+
     // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
         streamampInitializeCmp()
     };
-    
+
     if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
         streamampUtils.log('Firing beforeInit event', streamampConfig.beforeInit);
         streamampConfig.beforeInit();
     }
     // filters ad units for current break points - removing unnecessary bidders
     var adUnitsGPT = streamampGetAdUnitsPerBreakpoint();
-    
+
     var adUnitsAPS
     if (streamampConfig.a9Enabled) {
         // takes the filtered ad units and generates aps ad units
         adUnitsAPS = streamampCreateAPSAdUnits(adUnitsGPT);
     }
-    
+
     // removes the old/pre-existing ad units
     if (pbjs.adUnits && pbjs.adUnits.length) {
         var oldAdUnitCodes = pbjs.adUnits.map(function (adUnit) {
@@ -508,66 +521,66 @@ function streamampInit() {
         streamampDestroySlots(oldAdUnitCodes);
     }
     googletag.cmd.push(function () {
-        
+
         var predefinedSlotIds = googletag.pubads().getSlots().map(function (slot) {
             return slot.getSlotElementId();
         });
-        
+
         // defines slots
         adUnitsGPT.forEach(function (adUnit) {
             streamampDefineAdUnitSlot(adUnit, predefinedSlotIds)
         });
-        
+
         streamampUtils.logGpt('Enabling single request (SRA)');
         googletag.pubads().enableSingleRequest();
-        
+
         if (streamampConfig.hasCollapedEmptyDivs) {
             streamampUtils.logGpt('Enabling collapse of empty ad divs');
             googletag.pubads().collapseEmptyDivs(true, true);
         }
-        
+
         streamampUtils.logGpt('Enabling googletag service');
         googletag.enableServices();
     })
-    
+
     if (streamampConfig.afterInit && typeof streamampConfig.afterInit === 'function') {
         streamampUtils.log('Firing afterInit event', streamampConfig.afterInit);
         streamampConfig.afterInit();
     }
-    
+
     if (streamampConfig.hasRefreshBids) {
         streamampRefresh(streamampConfig.adUnitsToRefresh)
     }
-    
+
     streamampUtils.stickyAd(adUnitsGPT);
     auction(adUnitsGPT, adUnitsAPS)
 }
 
 function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
-    
+
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
     streamampUtils.log('Setting the bid timeout', bidTimeout)
-    
-    
+
+
     // Declare header bidders
     var bidders = ['prebid'];
-    
+
     if (streamampConfig.a9Enabled) {
         bidders = ['a9', 'prebid'];
     }
-    
+
     streamampUtils.log('Fetching header bids for bidders', bidders)
-    
+
     // Keep track of bidders state to determine when to send ad server request
     var requestManager = {
         adserverRequestSent: false,
     };
-    
+
     // Loop through bidder array and add the bidders to the request manager
     bidders.forEach(function (bidder) {
         requestManager[bidder] = false;
     });
-    
+
     // Return true if all bidders have returned
     function allBiddersBack() {
         var allBiddersBack = bidders // Get the booleans from the object
@@ -579,7 +592,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
         streamampUtils.log('Checking if all bidders are back', allBiddersBack)
         return allBiddersBack;
     }
-    
+
     // Handler for header bidder responses
     function headerBidderBack(bidder) {
         // Return early if request to adserver is already sent
@@ -594,13 +607,13 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
             streamampUtils.logPbjs('Handling header bidder back for Prebid')
             requestManager.prebid = true;
         }
-        
+
         // If all bidders are back, send the request to the ad server
         if (allBiddersBack()) {
             sendAdServerRequest();
         }
     }
-    
+
     // Get ads from GAM
     function sendAdServerRequest() {
         // Return early if request already sent
@@ -615,7 +628,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
         requestManager.sendAdServerRequest = true;
         // Set bid targeting and make ad request to GAM
         googletag.cmd.push(function () {
-            
+
             if (streamampConfig.a9Enabled) {
                 apstag.setDisplayBids();
                 streamampUtils.logAps('Setting display bids')
@@ -624,13 +637,13 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
                 streamampUtils.logPbjs('Queuing setTargetingForGPTAsync()')
                 pbjs.setTargetingForGPTAsync();
             });
-            
+
             streamampAddClientTargeting();
             streamampUtils.logGpt('Sending ad server request')
             googletag.pubads().refresh();
         });
     }
-    
+
     // Request all bids
     function requestBids(adUnitsGPT, adUnitsAPS, bidTimeout) {
         // Request bids from apstag
@@ -644,7 +657,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
                 headerBidderBack('a9');
             });
         }
-        
+
         // Request bids from prebid
         pbjs.que.push(function () {
             streamampUtils.logPbjs('Queuing addAdUnits() for', adUnitsGPT)
@@ -659,9 +672,9 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
             });
         });
     }
-    
+
     requestBids(adUnitsGPT, adUnitsAPS, bidTimeout);
-    
+
     // Set timeout to send request to call sendAdServerRequest() after timeout if all bidders haven't returned before then
     window.setTimeout(function () {
         sendAdServerRequest();
@@ -669,7 +682,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
 }
 
 function auction(adUnitsGPT, adUnitsAPS) {
-    
+
     // Fetch header bids
     if (window.__cmp) {
         window.__cmp('getConsentData', null, function (data, success) {
@@ -692,7 +705,7 @@ function streamampInitializeCmp() {
     scpt.parentNode.insertBefore(elem, scpt);
     (function () {
         var gdprAppliesGlobally = false;
-        
+
         function addFrame() {
             if (!window.frames['__cmpLocator']) {
                 if (document.body) {
@@ -709,9 +722,9 @@ function streamampInitializeCmp() {
                 }
             }
         }
-        
+
         addFrame();
-        
+
         function cmpMsgHandler(event) {
             var msgIsString = typeof event.data === "string";
             var json;
@@ -735,7 +748,7 @@ function streamampInitializeCmp() {
                 });
             }
         }
-        
+
         window.__cmp = function (c) {
             var b = arguments;
             if (!b.length) {
@@ -762,18 +775,18 @@ function streamampInitializeCmp() {
             window.attachEvent('onmessage', cmpMsgHandler);
         }
     })();
-    
+
     // Initialize CMP with custom configuration
     window.__cmp('init', streamampConfig.cmp.config);
-    
+
     // Apply custom CMP styles if true
     if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
         var style = document.createElement('style');
         var ref = document.querySelector('script');
-        
+
         var quantcastTheme = streamampConfig.cmp.styles;
         streamampUtils.log('Applying custom CMP styles', quantcastTheme)
-        
+
         style.innerHTML =
             // Background
             (isNotEmptyCmp(quantcastTheme.ui) && quantcastTheme.ui.backgroundColor
@@ -913,7 +926,7 @@ function streamampInitializeCmp() {
                 : '') +
             (quantcastTheme.additionalStyles ? quantcastTheme.additionalStyles : '') +
             '}';
-        
+
         ref.parentNode.insertBefore(style, ref);
     }
 }
@@ -928,7 +941,7 @@ function generatePriceGranularity(priceGranularity) {
     if (priceGranularity != 'custom') {
         return priceGranularity;
     }
-    
+
     return {
         'buckets': [{
             'precision': 2,
@@ -958,7 +971,7 @@ function streamampConfigAdUnitSlotKeyValue(adUnitCode, googleSlot) {
     if (streamampConfig.keyValues && streamampConfig.keyValues[adUnitCode]) {
         streamampConfig.keyValues[adUnitCode].forEach(function (keyValue) {
             keyValue = streamampUtils.normalizeKeyValue(keyValue);
-            
+
             if (keyValue.value !== undefined) {
                 googleSlot = googleSlot.setTargeting(keyValue.name, [keyValue.value]);
             } else {
@@ -981,7 +994,7 @@ function streamampSizemapping(adUnitmediaTypesbannersizes, adUnitbreakpoints) {
         var adUnitbreakpointsbreakpointlabel = adUnitbreakpoints[breakpoint.label] ? adUnitbreakpoints[breakpoint.label] : []
         sizemap = sizemap.addSize([breakpoint.minWidth, 0], streamampCompareAdUnitBreakpointSizes(adUnitbreakpointsbreakpointlabel, breakpoint.sizesSupported, adUnitmediaTypesbannersizes))
     });
-    
+
     return sizemap.build()
 }
 
@@ -1009,7 +1022,7 @@ function streamampCompareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoin
 
 function streamampDefineAdUnitSlot(adUnit, predefinedSlotId) {
     var googleSlot
-    
+
     if (!adUnit.outOfPage) {
         var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {};
         googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
@@ -1017,24 +1030,24 @@ function streamampDefineAdUnitSlot(adUnit, predefinedSlotId) {
     } else {
         googleSlot = googletag.defineOutOfPageSlot(adUnit.path, adUnit.code);
     }
-    
+
     if (adUnit.lazyLoad === true) {
         googleSlot = lazyLoading.configAdUnitSlot(googleSlot, config);
     }
-    
+
     googleSlot = streamampConfigAdUnitSlotKeyValue(adUnit.code, googleSlot);
-    
-    
+
+
     if (googleSlot && adUnit.safeFrame) {
         googleSlot = streamampConfigSlotSafeFrame(googleSlot, adUnit);
     }
-    
+
     // if (!predefinedSlotId && googleSlot) {
     googleSlot = googleSlot.addService(googletag.pubads());
     // }
-    
+
     window.gptAdSlots[adUnit.code] = googleSlot;
-    
+
     streamampUtils.logGpt('Defining ad unit slot', { code: adUnit.code, path: adUnit.path, sizes: JSON.stringify(adUnit.mediaTypes.banner.sizes) });
     return googleSlot;
 }
@@ -1045,7 +1058,7 @@ function streamampAddDNSPrefetch(urls) {
         var dnsPrefetchElement;
         var i;
         var node;
-        
+
         for (i = 0; i < urls.length; i++) {
             dnsPrefetchElement = window.document.createElement('link');
             dnsPrefetchElement.rel = 'preconnect';
@@ -1072,7 +1085,7 @@ function streamampInitAdServer() {
     if (window.pbjs.initAdserverSet) {
         return;
     }
-    
+
     streamampUtils.logGpt('Initializing Ad Server, loading GoogleTag library gpt.js');
     var gptSrc = dnsUrls.gpt;
     streamampUtils.loadScript(gptSrc);
@@ -1092,7 +1105,7 @@ function streamampAddClientTargeting() {
     var keyValue;
     var i;
     var clientConfig = window[streamampConfig.namespace + 'ClientConfig'] || {};
-    
+
     if (clientConfig && clientConfig.targets) {
         for (key in clientConfig.targets) {
             if (clientConfig.targets.hasOwnProperty(key)) {
@@ -1101,27 +1114,27 @@ function streamampAddClientTargeting() {
                     value: clientConfig.targets[key],
                     keyValueType: 'static'
                 };
-                
+
                 keyValue = streamampUtils.normalizeKeyValue(keyValue);
-                
+
                 streamampUtils.logGpt('Setting custom targeting.', keyValue);
                 googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
-                
+
             }
         }
     }
-    
+
     if (streamampConfig.globalKeyValues && streamampConfig.globalKeyValues.length) {
         for (i = 0; i < streamampConfig.globalKeyValues.length; i++) {
             keyValue = streamampConfig.globalKeyValues[i];
             keyValue = streamampUtils.normalizeKeyValue(keyValue);
-            
+
             if (keyValue.value !== undefined) {
                 googletag.pubads().setTargeting(keyValue.name, [keyValue.value]);
             } else {
                 googletag.pubads().setTargeting(keyValue.name, []);
             }
-            
+
         }
     }
 }
@@ -1131,16 +1144,16 @@ function streamampGetBreakpoint() {
     var i;
     var selectedBreakpoint;
     var breakpoint;
-    
+
     for (i = 0; i < streamampConfig.breakpoints.length; i++) {
         breakpoint = streamampConfig.breakpoints[i];
-        
+
         if (browserWidth >= breakpoint.minWidth && browserWidth <= breakpoint.maxWidth) {
             selectedBreakpoint = breakpoint;
             break;
         }
     }
-    
+
     streamampUtils.log('Getting current breakpoint:', selectedBreakpoint);
     return selectedBreakpoint;
 }
@@ -1149,7 +1162,7 @@ function streamampGetAdUnitsPerBreakpoint() {
     var selectedBreakpoint = streamampGetBreakpoint();
     var i;
     var adUnit;
-    
+
     //Filter AdUnits
     var filteredAdUnits = [];
     if (selectedBreakpoint) {
@@ -1161,7 +1174,7 @@ function streamampGetAdUnitsPerBreakpoint() {
             } else {
                 key = []
             }
-            
+
             if (adUnit && key.indexOf(selectedBreakpoint.label) !== -1 && streamampShouldShowAddUnit(adUnit.code)) {
                 adUnit.bids = adUnit.bids.filter(bid => bid.labelAny.includes(selectedBreakpoint.label))
                 filteredAdUnits.push(adUnit);
@@ -1173,30 +1186,30 @@ function streamampGetAdUnitsPerBreakpoint() {
 }
 
 function streamampDefineLazyAdUnits(gptSlots) {
-    
+
     streamampUtils.log('Defining lazy load google slots for', gptSlots);
-    
+
     var predefinedSlotIds = gptSlots.map(function (slot) {
         return slot.getSlotElementId();
     });
-    
+
     pbjs.que.push(function () {
         var adUnits = pbjs.adUnits || [];
-        
+
         var definedAdUnits = adUnits.map(function (adUnit) {
             return adUnit.code;
         });
-        
+
         // Filter adunits already added to the prebid
         var adUnitsGPT = streamampGetAdUnitsPerBreakpoint().filter(function (adUnit) {
             return definedAdUnits.indexOf(adUnit.code) === -1;
         });
-        
+
         streamampUtils.logPbjs('Adding new ad units', adUnitsGPT.map(function (adUnit) {
             return adUnit.code;
         }));
         pbjs.addAdUnits(adUnitsGPT);
-        
+
         adUnitsGPT.forEach(function (adUnit) {
             streamampDefineAdUnitSlot(adUnit, predefinedSlotIds);
         });
@@ -1204,14 +1217,14 @@ function streamampDefineLazyAdUnits(gptSlots) {
 }
 
 function streamampRefreshBids(selectedAdUnits) {
-    
+
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
     var gptSlots = streamampGetAdUnitsPerBreakpoint();
-    
+
     var apstagSlots;
-    
+
     apstagSlots = streamampCreateAPSAdUnits(gptSlots);
-    
+
     if(selectedAdUnits) {
         if (Array.isArray(selectedAdUnits)) {
             apstagSlots = apstagSlots.filter(function(apstagSlot) {
@@ -1223,7 +1236,7 @@ function streamampRefreshBids(selectedAdUnits) {
             })
         }
     }
-    
+
     if (streamampConfig.a9Enabled) {
         apstag.fetchBids({
             slots: apstagSlots,
@@ -1236,16 +1249,16 @@ function streamampRefreshBids(selectedAdUnits) {
         var gptSlots = googletag.pubads().getSlots();
         var adUnitsToRefresh = [];
         var slotIds = [];
-        
-        
+
+
         if (selectedAdUnits) {
             var slots = {};
-            
+
             for (i = 0; i < gptSlots.length; i++) {
                 slot = gptSlots[i];
                 slots[slot.getSlotElementId()] = slot;
             }
-            
+
             if (Array.isArray(selectedAdUnits)) {
                 for (var i = 0; i < selectedAdUnits.length; i++) {
                     adUnitsToRefresh.push(slots[selectedAdUnits[i]]);
@@ -1255,14 +1268,14 @@ function streamampRefreshBids(selectedAdUnits) {
                 adUnitsToRefresh = [slots[selectedAdUnits]];
                 slotIds = [selectedAdUnits];
             }
-            
+
         } else {
             adUnitsToRefresh = gptSlots
             slotIds = gptSlots.map(function (gptSlot) {
                 return gptSlot.getSlotElementId()
             })
         }
-        
+
         pbjs.que.push(function () {
             pbjs.requestBids({
                 timeout: bidTimeout,
@@ -1278,23 +1291,23 @@ function streamampRefreshBids(selectedAdUnits) {
             }
         });
     })
-    
+
 }
 window.adRefreshTimer = null;
 
 // Refresh bids handler
 function streamampRefresh (selectedAdUnits) {
-    
+
     function generateRefreshTimeout() {
         var min = +streamampConfig.minRefreshTime || 60;
         var max = +streamampConfig.maxRefreshTime || 90;
         var refreshTimeout = (Math.floor(Math.random() * (max - min)) + min) * 1e3;
-        
+
         // TODO:
         // streamampUtils.log('Setting refresh', { selectedAdUnits, refreshTimeout });
         return refreshTimeout;
     }
-    
+
     var refreshAds = function () {
         if (window.adRefreshTimer) {
             window.clearInterval(window.adRefreshTimer);
@@ -1306,7 +1319,7 @@ function streamampRefresh (selectedAdUnits) {
         }, generateRefreshTimeout());
     };
     refreshAds();
-    
+
     window.onfocus = function () {
         refreshAds();
     };
@@ -1318,19 +1331,19 @@ function streamampRefresh (selectedAdUnits) {
 
 function streamampDestroySlots(adUnitCodes) {
     streamampUtils.log('Destroying ad unit slots', adUnitCodes);
-    
+
     var adUnitSlots = adUnitCodes.reduce(function (slots, adUnitCode) {
         slots.push(window.gptAdSlots[adUnitCode]);
         return slots;
     }, []);
-    
+
     pbjs.que.push(function () {
         streamampUtils.logPbjs('Queuing removal of', adUnitCodes, 'from pbjs.adUnits')
         pbjs.adUnits = pbjs.adUnits.filter(function (adUnit) {
             return adUnitCodes.indexOf(adUnit.code) === -1;
         });
     });
-    
+
     googletag.cmd.push(function () {
         streamampUtils.logGpt('Queuing destroySlots() for', adUnitSlots)
         googletag.destroySlots(adUnitSlots);
@@ -1349,7 +1362,7 @@ function streamampOverrideGoogletagDisplay(config) {
             var slot = googletag.pubads().getSlots().find(function (slot) {
                 return slot.getSlotElementId() === adUnitCode;
             });
-            
+
             window[config.namespace].que.push(function () {
                 if (slot && slot.lazyLoad === true && config.GPTAsync === true) {
                     window[config.namespace].registerLazyLoad(adUnitCode);
@@ -1373,7 +1386,7 @@ function streamampIsVisible(node) {
 }
 
 function streamampIsNodeVisible(node) {
-    
+
     if (streamampIsBody(node)) {
         return true;
     }
@@ -1382,11 +1395,11 @@ function streamampIsNodeVisible(node) {
 
 function streamampRegisterLazyLoad(adUnitCode, auctionEndQueue) {
     var adUnitDiv = document.getElementById(adUnitCode);
-    
+
     if (!adUnitDiv || adUnitDiv.length < 1 || adUnitDiv.loaded === false) {
         return;
     }
-    
+
     adUnitDiv.loaded = false;
     adUnitDiv.fetchAd = function () {
         window.streamamp.refreshBids(adUnitDiv.id);
@@ -1394,25 +1407,25 @@ function streamampRegisterLazyLoad(adUnitCode, auctionEndQueue) {
         window.removeEventListener('scroll', adUnitDiv.isInView);
     }
     ;
-    
+
     adUnitDiv.isInView = function () {
         var prop = adUnitDiv.getBoundingClientRect();
-        
+
         var winHeight = window.innerHeight;
         var inView = prop.top <= winHeight && prop.top - winHeight < prop.height * -0.5 && prop.top >= 0;
-        
+
         if (typeof adUnitDiv.isVisible === 'undefined') {
             adUnitDiv.isVisible = streamampIsNodeVisible(adUnitDiv);
         }
-        
+
         if (inView && !adUnitDiv.loaded && adUnitDiv.isVisible) {
             auctionEndQueue.push(adUnitDiv.fetchAd);
         }
-        
+
         return inView;
     }
     ;
-    
+
     if (!adUnitDiv.isInView()) {
         window.addEventListener('scroll', adUnitDiv.isInView);
     }
@@ -1456,12 +1469,12 @@ function streamampProcessAuctionEndQueue() {
 
 if (streamampConfig && streamampConfig.namespace) {
     streamampPolyfills();
-    
+
     window[streamampConfig.namespace] = window[streamampConfig.namespace] || {};
     window[streamampConfig.namespace].que = window[streamampConfig.namespace].que || [];
-    
+
     window[streamampConfig.namespace] = factory(streamampConfig);
-    
+
     streamampProcessQueue();
 }
 
@@ -1476,7 +1489,7 @@ function streamampProcessQueue() {
             }
         }
     });
-    
+
     window[streamampConfig.namespace].que.push = function (cmd) {
         if (typeof cmd === 'function') {
             try {
@@ -1501,7 +1514,7 @@ function streamampPolyfills() {
         }
         ;
     }
-    
+
     // .find polyfill
     if (!Array.prototype.find) {
         Object.defineProperty(Array.prototype, 'find', {
@@ -1510,23 +1523,23 @@ function streamampPolyfills() {
                 if (this == null) {
                     throw new TypeError('"this" is null or not defined');
                 }
-                
+
                 var o = Object(this);
-                
+
                 // 2. Let len be ? ToLength(? Get(O, "length")).
                 var len = o.length >>> 0;
-                
+
                 // 3. If IsCallable(predicate) is false, throw a TypeError exception.
                 if (typeof predicate !== 'function') {
                     throw new TypeError('predicate must be a function');
                 }
-                
+
                 // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
                 var thisArg = arguments[1];
-                
+
                 // 5. Let k be 0.
                 var k = 0;
-                
+
                 // 6. Repeat, while k < len
                 while (k < len) {
                     // a. Let Pk be ! ToString(k).
@@ -1540,7 +1553,7 @@ function streamampPolyfills() {
                     // e. Increase k by 1.
                     k++;
                 }
-                
+
                 // 7. Return undefined.
                 return undefined;
             },
@@ -1548,42 +1561,42 @@ function streamampPolyfills() {
             writable: true
         });
     }
-    
+
     // .includes polyfill
     if (!Array.prototype.includes) {
         Object.defineProperty(Array.prototype, 'includes', {
             value: function (searchElement, fromIndex) {
-                
+
                 if (this == null) {
                     throw new TypeError('"this" is null or not defined');
                 }
-                
+
                 // 1. Let O be ? ToObject(this value).
                 var o = Object(this);
-                
+
                 // 2. Let len be ? ToLength(? Get(O, "length")).
                 var len = o.length >>> 0;
-                
+
                 // 3. If len is 0, return false.
                 if (len === 0) {
                     return false;
                 }
-                
+
                 // 4. Let n be ? ToInteger(fromIndex).
                 //    (If fromIndex is undefined, this step produces the value 0.)
                 var n = fromIndex | 0;
-                
+
                 // 5. If n ≥ 0, then
                 //  a. Let k be n.
                 // 6. Else n < 0,
                 //  a. Let k be len + n.
                 //  b. If k < 0, let k be 0.
                 var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-                
+
                 function sameValueZero(x, y) {
                     return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
                 }
-                
+
                 // 7. Repeat, while k < len
                 while (k < len) {
                     // a. Let elementK be the result of ? Get(O, ! ToString(k)).
@@ -1594,18 +1607,18 @@ function streamampPolyfills() {
                     // c. Increase k by 1.
                     k++;
                 }
-                
+
                 // 8. Return false
                 return false;
             }
         });
     }
-    
+
     // Object.values polyfill
     Object.values = Object.values ? Object.values : function (obj) {
         var allowedTypes = ["[object String]", "[object Object]", "[object Array]", "[object Function]"];
         var objType = Object.prototype.toString.call(obj);
-        
+
         if (obj === null || typeof obj === "undefined") {
             throw new TypeError("Cannot convert undefined or null to object");
         } else if (!~allowedTypes.indexOf(objType)) {
@@ -1617,14 +1630,14 @@ function streamampPolyfills() {
                     return obj[key];
                 });
             }
-            
+
             var result = [];
             for (var prop in obj) {
                 if (obj.hasOwnProperty(prop)) {
                     result.push(obj[prop]);
                 }
             }
-            
+
             return result;
         }
     };
@@ -1633,17 +1646,17 @@ function streamampPolyfills() {
 function streamampCreateAPSAdUnits(adUnitsGPT) {
     var label = streamampGetBreakpoint().label
     var googleSizes = [[320, 100], [970, 90], [468, 60], [120, 600]]
-    
+
     function filterGoogleSize(adUnits) {
         var googleSizejson = googleSizes.map(function(googleSize) {return JSON.stringify(googleSize)})
         var filterGoogleSizes = adUnits.filter(function(adUnit){
             return !googleSizejson.includes(JSON.stringify(adUnit))
         })
-        
+
         streamampUtils.logAps('Filtering out Google sizes')
         return filterGoogleSizes
     }
-    
+
     var apstagSlots = adUnitsGPT.map(function (adUnit) {
         return {
             slotID: adUnit.code,
@@ -1651,7 +1664,7 @@ function streamampCreateAPSAdUnits(adUnitsGPT) {
             sizes: filterGoogleSize(adUnit.breakpoints[label]),
         }
     });
-    
+
     streamampUtils.logAps('Generating apstag slots', apstagSlots)
     return apstagSlots
 }
