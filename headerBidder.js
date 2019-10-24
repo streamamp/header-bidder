@@ -426,9 +426,9 @@ function streamampSetup() {
         pbjs.setConfig({
             priceGranularity: generatePriceGranularity(streamampConfig.pbjsPriceGranularity)
         });
-        streamampUtils.logPbjs('Queuing setConfig() for bidder timeout', streamampConfig.bidTimeout)
+        streamampUtils.logPbjs('Queuing setConfig() for bidder timeout', streamampConfig.bidTimeout * 1e3)
         pbjs.setConfig({
-            bidderTimeout: streamampConfig.bidTimeout
+            bidderTimeout: streamampConfig.bidTimeout * 1e3
         });
         streamampUtils.logPbjs('Queuing setConfig() for size config (breakpoints)', streamampConfig.breakpoints.map(function(breakpoint) { return breakpoint.label }))
         pbjs.setConfig({
