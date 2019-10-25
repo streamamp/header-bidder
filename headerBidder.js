@@ -215,7 +215,7 @@ var publisher;
 
 function streamampSplitHostname() {
     var result = {};
-    var regexParse = new RegExp('([a-z\-0-9]{2,63})\.([a-z\.]{2,5})$');
+    var regexParse = new RegExp('([a-z\-0-9]{2,63})\.([a-z\.]{2,6})$');
     var urlParts = regexParse.exec(window.location.hostname);
     result.domain = urlParts[1];
     result.type = urlParts[2];
