@@ -1066,7 +1066,7 @@ function streamampShouldShowAddUnit(adUnitCode) {
         return toggleOn;
     } else {
         var toggleOff = window.AD_UNITS_TOGGLE_OFF.indexOf(adUnitCode) === -1;
-        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_ON and should be shown') : null;
+        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_OFF and should be shown') : null;
         return toggleOff;
     }
 }
