@@ -1162,22 +1162,26 @@ function streamampGetAdUnitsPerBreakpoint() {
     var selectedBreakpoint = streamampGetBreakpoint();
     var i;
     var adUnit;
-
+    
     //Filter AdUnits
     var filteredAdUnits = [];
     if (selectedBreakpoint) {
         for (i = 0; i < streamampConfig.adUnits.length; i++) {
             adUnit = streamampConfig.adUnits[i];
-            var key
-            if (streamampConfig.adUnits[i].breakpoints) {
-                key = Object.keys(streamampConfig.adUnits[i].breakpoints)
+            if (streamampConfig.nonProgmmaticSize && streamampConfig.nonProgmmaticSize.length && streamampConfig.nonProgmmaticSize.includes(adUnit.code)) {
+                var key
+                if (streamampConfig.adUnits[i].breakpoints) {
+                    key = Object.keys(streamampConfig.adUnits[i].breakpoints)
+                } else {
+                    key = []
+                }
+                
+                if (adUnit && key.indexOf(selectedBreakpoint.label) !== -1 && streamampShouldShowAddUnit(adUnit.code)) {
+                    adUnit.bids = adUnit.bids.filter(bid=>bid.labelAny.includes(selectedBreakpoint.label))
+                    filteredAdUnits.push(adUnit);
+                }
             } else {
-                key = []
-            }
-
-            if (adUnit && key.indexOf(selectedBreakpoint.label) !== -1 && streamampShouldShowAddUnit(adUnit.code)) {
-                adUnit.bids = adUnit.bids.filter(bid => bid.labelAny.includes(selectedBreakpoint.label))
-                filteredAdUnits.push(adUnit);
+                filteredAdUnits.push(adUnit)
             }
         }
     }
