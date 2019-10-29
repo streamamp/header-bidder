@@ -232,6 +232,7 @@ if (streamampSplitHostname().domain === 'road') {
 }
 streamampUtils.log('Setting publisher as', publisher)
 
+
 // -------------- Global Variables -----------
 
 var dnsUrls = {
@@ -276,6 +277,14 @@ if (publisher) {
 
 // streamampSetup
 function streamampSetup() {
+    
+    pbjs.que.push(function() {
+        if (streamampConfig.afterLoad && typeof streamampConfig.afterLoad === 'function') {
+            streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Fire afterLoad event');
+            streamampConfig.afterLoad();
+        }
+    });
+    
     streamampUtils.log('Running setup()')
     /* ------set up global variable ------ */
     var adUnits = streamampConfig.adUnits
@@ -1020,35 +1029,71 @@ function streamampCompareAdUnitBreakpointSizes(adUnitbreakpointsSizes, breakpoin
     return matchingSizes
 }
 
-function streamampDefineAdUnitSlot(adUnit, predefinedSlotId) {
+function streamampDefineAdUnitSlot(adUnit, predefinedSlotIds) {
+    
     var googleSlot
-
-    if (!adUnit.outOfPage) {
-        var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {};
-        googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
-            .defineSizeMapping(streamampSizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
+    var predefinedSlotId
+    if (streamampConfig.predefinedSlotOverride === true) {
+        if (streamampConfig.predefinedSlotOverrideMethod === 'metoffice') {
+            if (typeof unitFn !== "undefined") {
+//                 var adUnitsToFilter = [];
+//                 for (var key in window['metoffice']['advertising']['requiredSlots']) {
+//                     if (window['metoffice']['advertising']['requiredSlots'].hasOwnProperty(key)) {
+//                         adUnitsToFilter.push(key);
+//                     }
+//                 }
+                
+                predefinedSlotId = predefinedSlotIds.find(function(slotId) {
+                    return adUnit.code === slotId;
+                });
+                
+            }
+        }
+        
+        if (predefinedSlotId) {
+            googleSlot = googletag.pubads().getSlots().find(function(slot) {
+                return slot.getSlotElementId() === predefinedSlotId;
+            });
+            
+            adUnit.code = googleSlot.getSlotElementId();
+            adUnit.path = googleSlot.getAdUnitPath();
+            
+        } else {
+            pbjs.que.push(function() {
+                pbjs.removeAdUnit(adUnit.code);
+            });
+            return;
+        }
     } else {
-        googleSlot = googletag.defineOutOfPageSlot(adUnit.path, adUnit.code);
+        if (!adUnit.outOfPage) {
+            var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {};
+            googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code).defineSizeMapping(streamampSizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
+        } else {
+            googleSlot = googletag.defineOutOfPageSlot(adUnit.path, adUnit.code);
+        }
     }
-
+    
     if (adUnit.lazyLoad === true) {
         googleSlot = lazyLoading.configAdUnitSlot(googleSlot, config);
     }
-
+    
     googleSlot = streamampConfigAdUnitSlotKeyValue(adUnit.code, googleSlot);
-
-
+    
     if (googleSlot && adUnit.safeFrame) {
         googleSlot = streamampConfigSlotSafeFrame(googleSlot, adUnit);
     }
-
-    // if (!predefinedSlotId && googleSlot) {
-    googleSlot = googleSlot.addService(googletag.pubads());
-    // }
-
+    
+    if (!predefinedSlotId && googleSlot) {
+        googleSlot = googleSlot.addService(googletag.pubads());
+    }
+    
     window.gptAdSlots[adUnit.code] = googleSlot;
-
-    streamampUtils.logGpt('Defining ad unit slot', { code: adUnit.code, path: adUnit.path, sizes: JSON.stringify(adUnit.mediaTypes.banner.sizes) });
+    
+    streamampUtils.logGpt('Defining ad unit slot', {
+        code: adUnit.code,
+        path: adUnit.path,
+        sizes: JSON.stringify(adUnit.mediaTypes.banner.sizes)
+    });
     return googleSlot;
 }
 
@@ -1677,5 +1722,9 @@ window.streamamp = {
     destroySlots: function (selectedAdUnits) {
         streamampDestroySlots(selectedAdUnits)
     },
-    initialize: streamampInit
+    initialize: function(boolean) {
+        if (boolean) {
+            streamampInit()
+        }
+    }
 }
