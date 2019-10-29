@@ -232,6 +232,8 @@ var dnsUrls = {
     config: 'https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/' + publisher + '.min.js'
 };
 
+var streamampConfigBack = false
+
 window.streamampConfig = window.streamampConfig || {};
 window.streamampConfig.adUnits = window.streamampConfig.adUnits || {};
 window.streamampConfig.cmp = window.streamampConfig.cmp || [];
@@ -260,9 +262,15 @@ if (publisher) {
     loadStreamampConfig.type = 'text/javascript';
     loadStreamampConfig.async = true;
     loadStreamampConfig.src = dnsUrls.config;
-    loadStreamampConfig.onload = streamampSetup
+    loadStreamampConfig.onload = streamampConfigBackCheck
     var node = document.getElementsByTagName('script')[0];
     node.parentNode.insertBefore(loadStreamampConfig, node);
+}
+
+function streamampConfigBackCheck() {
+    streamampConfigBack = true
+    streamampUtils.log('Loaded', publisher, 'config file')
+    streamampSetup()
 }
 
 // streamampSetup
@@ -270,7 +278,7 @@ function streamampSetup() {
     
     pbjs.que.push(function() {
         if (streamampConfig.afterLoad && typeof streamampConfig.afterLoad === 'function') {
-            streamampUtils.log(streamampConfig.namespace, 'DEBUG:', 'Fire afterLoad event');
+            streamampUtils.log('Firing afterLoad event', streamampConfig.afterLoad);
             streamampConfig.afterLoad();
         }
     });
@@ -1715,7 +1723,7 @@ window.streamamp = {
         streamampDestroySlots(selectedAdUnits)
     },
     initialize: function(boolean) {
-        if (boolean) {
+        if (boolean && streamampConfigBack) {
             streamampInit()
         }
     }
