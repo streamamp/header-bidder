@@ -1,14 +1,14 @@
 // StreamAMP Header Bidder v1
 
-var isClientDebugModeOn;
+var isStreamampDebugModeOn;
 
-function isClientDebugMode() {
-    if (isClientDebugModeOn !== undefined) {
-        return isClientDebugModeOn;
+function isStreamampDebugMode() {
+    if (isStreamampDebugModeOn !== undefined) {
+        return isStreamampDebugModeOn;
     }
 
     var url = window.location.href;
-    var name = 'client_debug';
+    var name = 'streamamp_debug';
     var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
     var results = regex.exec(url);
     if (!results) {
@@ -69,7 +69,7 @@ var streamampUtils = {
 
         return keyValue;
     },
-    isClientDebugMode: isClientDebugMode,
+    isStreamampDebugMode: isStreamampDebugMode,
     styleDebugLog: function (type, arguments) {
         arguments = Array.from(arguments)
         var typeTextColor
@@ -88,44 +88,34 @@ var streamampUtils = {
         }
 
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: ' + typeTextColor + '; padding: 1px 0;')
-
-        // if (type === 'debug') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; padding: 1px 0;')
-        // } else if (type === 'gpt') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #1E8E3E; padding: 1px 0;')
-        // } else if (type === 'aps') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FF9900; padding: 1px 0;')
-        // } else if (type === 'pbjs') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #3B88C3; padding: 1px 0;')
-        // }
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FFF; background: #2F0D00; padding: 1px 3px; margin: 2px 0; border-radius: 3px;')
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #2F0D00; padding: 1px 0; margin: 2px')
         arguments.unshift('%cSTREAM%cAMP' + '%c  ' + type.toUpperCase() + ': ')
         return arguments
     },
     log: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('debug', arguments));
         }
     },
     logPbjs: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('pbjs', arguments));
         }
     },
     logGpt: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('gpt', arguments));
         }
     },
     logAps: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.log.apply(this, streamampUtils.styleDebugLog('aps', arguments));
         }
     },
 
     logError: function() {
-        if (isClientDebugMode()) {
+        if (isStreamampDebugMode()) {
             console.error.apply(this, streamampUtils.styleDebugLog('error', arguments));
         } else {
             console.error.apply(this, arguments);
@@ -1121,7 +1111,7 @@ function streamampShouldShowAddUnit(adUnitCode) {
         return toggleOn;
     } else {
         var toggleOff = window.AD_UNITS_TOGGLE_OFF.indexOf(adUnitCode) === -1;
-        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_ON and should be shown') : null;
+        toggleOff ? streamampUtils.log('Ad unit', adUnitCode, 'is not in AD_UNITS_TOGGLE_OFF and should be shown') : null;
         return toggleOff;
     }
 }
@@ -1492,7 +1482,7 @@ var streamampAuctionEndQueue = {
                 if (pbjs.isAuctionEnded) {
                     cb.call();
                 } else {
-                    streamampAuctionendcallbacks.push(cb);
+                    streamampAuctionEndCallbacks.push(cb);
                 }
             });
         } else {
@@ -1502,14 +1492,14 @@ var streamampAuctionEndQueue = {
 };
 
 function streamampProcessAuctionEndQueue() {
-    streamampAuctionendcallbacks.forEach(function (cb) {
+    streamampAuctionEndCallbacks.forEach(function (cb) {
         if (typeof cb === 'function') {
             cb.call();
         } else {
             streamampUtils.logError('Commands written into auctionEndQueue must be wrapped in a function');
         }
     });
-    streamampAuctionendcallbacks = [];
+    streamampAuctionEndCallbacks = [];
 }
 
 if (streamampConfig && streamampConfig.namespace) {
@@ -1517,8 +1507,7 @@ if (streamampConfig && streamampConfig.namespace) {
 
     window[streamampConfig.namespace] = window[streamampConfig.namespace] || {};
     window[streamampConfig.namespace].que = window[streamampConfig.namespace].que || [];
-
-    window[streamampConfig.namespace] = factory(streamampConfig);
+    
 
     streamampProcessQueue();
 }
