@@ -1437,7 +1437,7 @@ var streamampAuctionEndQueue = {
                 if (pbjs.isAuctionEnded) {
                     cb.call();
                 } else {
-                    streamampAuctionendcallbacks.push(cb);
+                    streamampAuctionEndCallbacks.push(cb);
                 }
             });
         } else {
@@ -1447,14 +1447,14 @@ var streamampAuctionEndQueue = {
 };
 
 function streamampProcessAuctionEndQueue() {
-    streamampAuctionendcallbacks.forEach(function (cb) {
+    streamampAuctionEndCallbacks.forEach(function (cb) {
         if (typeof cb === 'function') {
             cb.call();
         } else {
             streamampUtils.logError('Commands written into auctionEndQueue must be wrapped in a function');
         }
     });
-    streamampAuctionendcallbacks = [];
+    streamampAuctionEndCallbacks = [];
 }
 
 if (streamampConfig && streamampConfig.namespace) {
