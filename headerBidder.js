@@ -88,16 +88,6 @@ var streamampUtils = {
         }
 
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: ' + typeTextColor + '; padding: 1px 0;')
-
-        // if (type === 'debug') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; padding: 1px 0;')
-        // } else if (type === 'gpt') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #1E8E3E; padding: 1px 0;')
-        // } else if (type === 'aps') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FF9900; padding: 1px 0;')
-        // } else if (type === 'pbjs') {
-        //     arguments.unshift('font-family: sans-serif; font-weight: bold; color: #3B88C3; padding: 1px 0;')
-        // }
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FFF; background: #2F0D00; padding: 1px 3px; margin: 2px 0; border-radius: 3px;')
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #2F0D00; padding: 1px 0; margin: 2px')
         arguments.unshift('%cSTREAM%cAMP' + '%c  ' + type.toUpperCase() + ': ')
