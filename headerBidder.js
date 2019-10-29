@@ -1026,15 +1026,15 @@ function streamampDefineAdUnitSlot(adUnit, predefinedSlotIds) {
     if (streamampConfig.predefinedSlotOverride === true) {
         if (streamampConfig.predefinedSlotOverrideMethod === 'metoffice') {
             if (typeof unitFn !== "undefined") {
-//                 var adUnitsToFilter = [];
-//                 for (var key in window['metoffice']['advertising']['requiredSlots']) {
-//                     if (window['metoffice']['advertising']['requiredSlots'].hasOwnProperty(key)) {
-//                         adUnitsToFilter.push(key);
-//                     }
-//                 }
+                var adUnitsToFilter = [];
+                for (var key in window['metoffice']['advertising']['requiredSlots']) {
+                    if (window['metoffice']['advertising']['requiredSlots'].hasOwnProperty(key)) {
+                        adUnitsToFilter.push(key);
+                    }
+                }
                 
                 predefinedSlotId = predefinedSlotIds.find(function(slotId) {
-                    return adUnit.code === slotId;
+                    return adUnitsToFilter.indexOf(adUnit.code) !== -1 && adUnit.code === slotId;
                 });
                 
             }
@@ -1049,15 +1049,18 @@ function streamampDefineAdUnitSlot(adUnit, predefinedSlotIds) {
             adUnit.path = googleSlot.getAdUnitPath();
             
         } else {
+            
             pbjs.que.push(function() {
                 pbjs.removeAdUnit(adUnit.code);
             });
             return;
+            
         }
     } else {
         if (!adUnit.outOfPage) {
             var adUnitbreakpoints = adUnit.breakpoints ? adUnit.breakpoints : {};
-            googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code).defineSizeMapping(streamampSizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
+            googleSlot = googletag.defineSlot(adUnit.path, adUnit.mediaTypes.banner.sizes, adUnit.code)
+                .defineSizeMapping(streamampSizemapping(adUnit.mediaTypes.banner.sizes, adUnitbreakpoints));
         } else {
             googleSlot = googletag.defineOutOfPageSlot(adUnit.path, adUnit.code);
         }
