@@ -984,7 +984,7 @@ function streamampConfigAdUnitSlotKeyValue(adUnitCode, googleSlot) {
 }
 
 function streamampConfigSlotSafeFrame(googleSlot, adUnit) {
-    streamampUtils.logGpt('Setting forcee safe frame for ad unit', adUnit)
+    streamampUtils.logGpt('Setting force safe frame for ad unit', adUnit)
     return googleSlot.setForceSafeFrame(true)
 }
 
