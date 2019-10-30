@@ -72,6 +72,8 @@ var streamampUtils = {
     isStreamampDebugMode: isStreamampDebugMode,
     styleDebugLog: function (type, arguments) {
         arguments = Array.from(arguments)
+    
+        // Choose a text color based of the type of log
         var typeTextColor
         switch (type) {
             case 'pbjs':
@@ -86,10 +88,14 @@ var streamampUtils = {
             default:
                 typeTextColor = '';
         }
-
+    
+        // Set the styling for the type
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: ' + typeTextColor + '; padding: 1px 0;')
+        // Set the styling for 'AMP'
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FFF; background: #2F0D00; padding: 1px 3px; margin: 2px 0; border-radius: 3px;')
+        // Set the styling for 'Stream'
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #2F0D00; padding: 1px 0; margin: 2px')
+        // Add 'StreamAMP' and the log type to the beginning of the log message
         arguments.unshift('%cSTREAM%cAMP' + '%c  ' + type.toUpperCase() + ': ')
         return arguments
     },
@@ -233,6 +239,7 @@ var dnsUrls = {
 };
 
 var streamampConfigBack = false
+streamampUtils.log('Setting streamampConfigBack to', streamampConfigBack)
 
 window.streamampConfig = window.streamampConfig || {};
 window.streamampConfig.adUnits = window.streamampConfig.adUnits || {};
@@ -262,14 +269,18 @@ if (publisher) {
     loadStreamampConfig.type = 'text/javascript';
     loadStreamampConfig.async = true;
     loadStreamampConfig.src = dnsUrls.config;
-    loadStreamampConfig.onload = streamampConfigBackCheck
+    loadStreamampConfig.onload = streamampWaitForConfigBack
     var node = document.getElementsByTagName('script')[0];
     node.parentNode.insertBefore(loadStreamampConfig, node);
 }
 
-function streamampConfigBackCheck() {
+// Wait for the config file to load and then set streamampConfigBack to true and run streamampSetup()
+function streamampWaitForConfigBack() {
+    streamampUtils.log('Loading', publisher, 'config file')
+    
     streamampConfigBack = true
-    streamampUtils.log('Loaded', publisher, 'config file')
+    streamampUtils.log('Setting streamampConfigBack to', streamampConfigBack)
+    
     streamampSetup()
 }
 
@@ -278,7 +289,7 @@ function streamampSetup() {
     
     pbjs.que.push(function() {
         if (streamampConfig.afterLoad && typeof streamampConfig.afterLoad === 'function') {
-            streamampUtils.log('Firing afterLoad event', streamampConfig.afterLoad);
+            streamampUtils.log('Running afterLoad event', streamampConfig.afterLoad);
             streamampConfig.afterLoad();
         }
     });
@@ -508,7 +519,7 @@ function streamampInit() {
     };
 
     if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
-        streamampUtils.log('Firing beforeInit event', streamampConfig.beforeInit);
+        streamampUtils.log('Running beforeInit event', streamampConfig.beforeInit);
         streamampConfig.beforeInit();
     }
     // filters ad units for current break points - removing unnecessary bidders
@@ -551,7 +562,7 @@ function streamampInit() {
     })
 
     if (streamampConfig.afterInit && typeof streamampConfig.afterInit === 'function') {
-        streamampUtils.log('Firing afterInit event', streamampConfig.afterInit);
+        streamampUtils.log('Running afterInit event', streamampConfig.afterInit);
         streamampConfig.afterInit();
     }
 
@@ -1200,7 +1211,7 @@ function streamampGetBreakpoint() {
         }
     }
 
-    streamampUtils.log('Getting current breakpoint:', selectedBreakpoint);
+    streamampUtils.log('Getting current breakpoint', selectedBreakpoint);
     return selectedBreakpoint;
 }
 
@@ -1263,6 +1274,7 @@ function streamampDefineLazyAdUnits(gptSlots) {
 }
 
 function streamampRefreshBids(selectedAdUnits) {
+    streamampUtils.log(selectedAdUnits ? ('Refreshing', selectedAdUnits) : 'Refreshing all ad units')
 
     var bidTimeout = streamampConfig.bidTimeout * 1e3 || 2000;
     var gptSlots = streamampGetAdUnitsPerBreakpoint();
@@ -1284,6 +1296,7 @@ function streamampRefreshBids(selectedAdUnits) {
     }
 
     if (streamampConfig.a9Enabled) {
+        streamampUtils.logAps('Fetching bids for', apstagSlots)
         apstag.fetchBids({
             slots: apstagSlots,
             timeout: bidTimeout
@@ -1323,16 +1336,20 @@ function streamampRefreshBids(selectedAdUnits) {
         }
 
         pbjs.que.push(function () {
+            streamampUtils.logPbjs('Queuing requestBids()')
             pbjs.requestBids({
                 timeout: bidTimeout,
                 adUnitCodes: slotIds,
                 bidsBackHandler: function () {
                     streamampAddClientTargeting();
+                    streamampUtils.logPbjs('Queuing setTargetingForGPTAsync() for', slotIds)
                     pbjs.setTargetingForGPTAsync(slotIds);
+                    streamampUtils.logGpt('Sending ad server request for', adUnitsToRefresh)
                     googletag.pubads().refresh(adUnitsToRefresh);
                 },
             })
             if (streamampConfig.a9Enabled) {
+                streamampUtils.logAps('Setting display bids')
                 apstag.setDisplayBids();
             }
         });
@@ -1347,14 +1364,14 @@ function streamampRefresh (selectedAdUnits) {
     function generateRefreshTimeout() {
         var min = +streamampConfig.minRefreshTime || 60;
         var max = +streamampConfig.maxRefreshTime || 90;
-        var refreshTimeout = (Math.floor(Math.random() * (max - min)) + min) * 1e3;
-
-        // TODO:
-        // streamampUtils.log('Setting refresh', { selectedAdUnits, refreshTimeout });
-        return refreshTimeout;
+        // Generate a random number of seconds between the max and min and convert it to milliseconds
+        return (Math.floor(Math.random() * (max - min)) + min) * 1e3;
     }
 
     var refreshAds = function () {
+        var refreshTimeout = generateRefreshTimeout()
+        streamampUtils.log('Setting refresh', { selectedAdUnits: (selectedAdUnits ? selectedAdUnits : 'all'), refreshTimeout: refreshTimeout / 1e3 + ' seconds' });
+    
         if (window.adRefreshTimer) {
             window.clearInterval(window.adRefreshTimer);
         }
@@ -1362,7 +1379,7 @@ function streamampRefresh (selectedAdUnits) {
             if (streamampConfig.hasRefreshBids) {
                 streamampRefreshBids(selectedAdUnits);
             }
-        }, generateRefreshTimeout());
+        }, refreshTimeout);
     };
     refreshAds();
 
@@ -1370,6 +1387,7 @@ function streamampRefresh (selectedAdUnits) {
         refreshAds();
     };
     window.onblur = function () {
+        streamampUtils.log('Refresh paused (interval cleared) due to window.onblur');
         window.clearInterval(window.adRefreshTimer);
         window.adRefreshTimer = null;
     };
@@ -1715,16 +1733,32 @@ function streamampCreateAPSAdUnits(adUnitsGPT) {
 }
 
 window.streamamp = {
-    refreshAllBids: streamampRefreshBids,
+    refreshAllBids: function() {
+        streamampUtils.log('window.streamamp.refreshAllBids() was called')
+        streamampRefreshBids()
+    },
     refreshBids: function (selectedAdUnits) {
-        streamampRefreshBids(selectedAdUnits)
+        if (selectedAdUnits.length > 0) {
+            streamampUtils.log('window.streamamp.refreshBids() was called with', selectedAdUnits, 'ad unit(s)')
+            streamampRefreshBids(selectedAdUnits)
+        } else {
+            streamampUtils.logError('refreshBids() must be passed an array of strings or a string of a single ad unit code')
+        }
     },
     destroySlots: function (selectedAdUnits) {
         streamampDestroySlots(selectedAdUnits)
     },
     initialize: function(boolean) {
-        if (boolean && streamampConfigBack) {
-            streamampInit()
+        if (boolean) {
+            streamampUtils.log('window.streamamp.initialize() was called')
+            streamampUtils.log('streamAmpConfigBack is', streamampConfigBack)
+            if (streamampConfigBack) {
+                streamampInit()
+            } else {
+                streamampUtils.log('Preventing init() from running until streampampConfigBack is true')
+            }
+            
+            
         }
     }
 }
