@@ -515,7 +515,12 @@ function streamampInit() {
 
     // Initialize CMP if enabled
     if (streamampConfig.cmp.isEnabled) {
-        streamampInitializeCmp()
+        if (streamampConfig.cmp.pathnamesToExclude.length > 0 && streamampConfig.cmp.pathnamesToExclude.indexOf(window.location.pathname) != -1) {
+            streamampUtils.log('CMP pathnames to exclude are', streamampConfig.cmp.pathnamesToExclude)
+            streamampUtils.log('Preventing CMP initialization as', window.location.pathname, 'is in streamampConfig.cmp.pathnamesToExclude')
+        } else {
+            streamampInitializeCmp()
+        }
     };
 
     if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
