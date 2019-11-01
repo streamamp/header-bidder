@@ -287,6 +287,38 @@ function streamampWaitForConfigBack() {
 // streamampSetup
 function streamampSetup() {
     
+    streamampOverrideGoogletagDisplay(streamampConfig)
+    
+    window[streamampConfig.namespace] = window[streamampConfig.namespace] || {};
+    window[streamampConfig.namespace].que = window[streamampConfig.namespace].que || [];
+    
+    function streamampProcessQueue() {
+        window[streamampConfig.namespace].que.forEach(function(cmd) {
+            if (typeof cmd.called === 'undefined' && typeof cmd === 'function') {
+                try {
+                    cmd.call();
+                    cmd.called = true;
+                } catch (e) {
+                    streamampUtils.logError('Error processing command :' + e.message);
+                }
+            }
+        });
+        window[streamampConfig.namespace].que.push = function(cmd) {
+            if (typeof cmd === 'function') {
+                try {
+                    cmd.call();
+                } catch (e) {
+                    streamampUtils.logError('Error processing command :' + e.message);
+                }
+            } else {
+                streamampUtils.logError('Commands written into ', streamampConfig.namespace + '.cmd.push must be wrapped in a function');
+            }
+        }
+        ;
+    }
+    
+    streamampProcessQueue();
+    
     pbjs.que.push(function() {
         if (streamampConfig.afterLoad && typeof streamampConfig.afterLoad === 'function') {
             streamampUtils.log('Running afterLoad event', streamampConfig.afterLoad);
@@ -554,9 +586,11 @@ function streamampInit() {
             streamampDefineAdUnitSlot(adUnit, predefinedSlotIds)
         });
 
-        streamampUtils.logGpt('Enabling single request (SRA)');
-        googletag.pubads().enableSingleRequest();
-
+        if(streamampConfig.gptSingleRequestEnabled) {
+            streamampUtils.logGpt('Enabling single request (SRA)');
+            googletag.pubads().enableSingleRequest();
+        }
+        
         if (streamampConfig.hasCollapedEmptyDivs) {
             streamampUtils.logGpt('Enabling collapse of empty ad divs');
             googletag.pubads().collapseEmptyDivs(true, true);
@@ -656,14 +690,26 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
                 apstag.setDisplayBids();
                 streamampUtils.logAps('Setting display bids')
             }
+    
+            streamampAddClientTargeting();
+    
             pbjs.que.push(function () {
                 streamampUtils.logPbjs('Queuing setTargetingForGPTAsync()')
                 pbjs.setTargetingForGPTAsync();
             });
-
-            streamampAddClientTargeting();
+    
+            if (streamampConfig.gptSingleRequestEnabled) {
+                googletag.pubads().refresh(googletag.pubads().getSlots());
+            } else {
+                googletag.pubads().getSlots().forEach(function(slot) {
+                    googletag.display(slot.getSlotElementId());
+                });
+            }
+    
+            pbjs.isAuctionEnded = true;
+            streamampProcessAuctionEndQueue();
+            
             streamampUtils.logGpt('Sending ad server request')
-            googletag.pubads().refresh();
         });
     }
 
@@ -1351,6 +1397,9 @@ function streamampRefreshBids(selectedAdUnits) {
                     pbjs.setTargetingForGPTAsync(slotIds);
                     streamampUtils.logGpt('Sending ad server request for', adUnitsToRefresh)
                     googletag.pubads().refresh(adUnitsToRefresh);
+    
+                    pbjs.isAuctionEnded = true;
+                    streamampProcessAuctionEndQueue();
                 },
             })
             if (streamampConfig.a9Enabled) {
@@ -1435,8 +1484,8 @@ function streamampOverrideGoogletagDisplay(config) {
             window[config.namespace].que.push(function () {
                 if (slot && slot.lazyLoad === true && config.GPTAsync === true) {
                     window[config.namespace].registerLazyLoad(adUnitCode);
-                } else if (config.GPTAsync === true && !config.preventInitAdServer) {
-                    window[config.namespace].auctionEndQueue.push(function () {
+                } else {
+                    streamampAuctionEndQueue.push(function() {
                         googletag.pubads().refresh([slot]);
                     });
                 }
@@ -1538,38 +1587,6 @@ function streamampProcessAuctionEndQueue() {
 
 if (streamampConfig && streamampConfig.namespace) {
     streamampPolyfills();
-
-    window[streamampConfig.namespace] = window[streamampConfig.namespace] || {};
-    window[streamampConfig.namespace].que = window[streamampConfig.namespace].que || [];
-    
-
-    streamampProcessQueue();
-}
-
-function streamampProcessQueue() {
-    window[streamampConfig.namespace].que.forEach(function (cmd) {
-        if (typeof cmd.called === 'undefined' && typeof cmd === 'function') {
-            try {
-                cmd.call();
-                cmd.called = true;
-            } catch (e) {
-                streamampUtils.logError('Error processing command :' + e.message);
-            }
-        }
-    });
-
-    window[streamampConfig.namespace].que.push = function (cmd) {
-        if (typeof cmd === 'function') {
-            try {
-                cmd.call();
-            } catch (e) {
-                streamampUtils.logError('Error processing command :' + e.message);
-            }
-        } else {
-            streamampUtils.logError('Commands written into ', streamampConfig.namespace + '.cmd.push must be wrapped in a function');
-        }
-    }
-    ;
 }
 
 function streamampPolyfills() {
@@ -1762,8 +1779,6 @@ window.streamamp = {
             } else {
                 streamampUtils.log('Preventing init() from running until streampampConfigBack is true')
             }
-            
-            
         }
     }
 }
