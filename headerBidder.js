@@ -227,6 +227,16 @@ function streamampSplitHostname() {
 // Set publisher to the domain from streamampSplitHostname()
 if (streamampSplitHostname().domain === 'road') {
     publisher = streamampSplitHostname().subdomain + streamampSplitHostname().domain
+} else if (streamampSplitHostname().domain === 'sift') {
+    if (streamampSplitHostname().subdomain === 'ppawuk.uat') {
+        publisher = 'accountingweb'
+    } else if (streamampSplitHostname().subdomain === 'pphrzone.uat') {
+        publisher = 'hrzone'
+    } else if (streamampSplitHostname().subdomain === 'ppmyc.uat') {
+        publisher = 'mycustomer'
+    } else if (streamampSplitHostname().subdomain === 'pptrz.uat') {
+        publisher = 'trainingzone'
+    }
 } else {
     publisher = streamampSplitHostname().domain
 }
