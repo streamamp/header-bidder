@@ -417,6 +417,9 @@ function streamampSetup() {
             }
         })
     }
+    
+    // set force container size
+    forceContainerSize(streamampConfig)
 
     // Enable Analytics Module
     pbjs.que.push(function () {
@@ -1752,6 +1755,26 @@ function streamampCreateAPSAdUnits(adUnitsGPT) {
 
     streamampUtils.logAps('Generating apstag slots', apstagSlots)
     return apstagSlots
+}
+
+function forceContainerSize(config) {
+    
+    pbjs.que.push(function() {
+        if (config.setForceContainerSize && config.setForceContainerSize===true) {
+            pbjs.onEvent('bidWon', function(bid) {
+    
+                streamampUtils.logAps('Force container size', bid.adUnitCode)
+    
+                var adElement = document.getElementById(bid.adUnitCode).getElementsByTagName('div')[0];
+                var divWidth = parseInt(adElement.style.width);
+                var divHeight = parseInt(adElement.style.height);
+                if (divWidth > 0 && divHeight > 0) {
+                    adElement.style.width = bid.width + 'px';
+                    adElement.style.height = bid.height + 'px';
+                }
+            });
+        }
+    });
 }
 
 window.streamamp = {
