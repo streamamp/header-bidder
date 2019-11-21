@@ -505,7 +505,6 @@ function streamampInit() {
         }
     };
 
-
     if (streamampConfig.beforeInit && typeof streamampConfig.beforeInit === 'function') {
         streamampUtils.log('Firing beforeInit event', streamampConfig.beforeInit);
         streamampConfig.beforeInit();
