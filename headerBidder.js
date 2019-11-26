@@ -500,6 +500,7 @@ function streamampInit() {
         streamampUtils.log('Firing beforeInit event', streamampConfig.beforeInit);
         streamampConfig.beforeInit();
     }
+    
     // filters ad units for current break points - removing unnecessary bidders
     var adUnitsGPT = streamampGetAdUnitsPerBreakpoint();
 
