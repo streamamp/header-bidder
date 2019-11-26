@@ -757,7 +757,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
 function auction(adUnitsGPT, adUnitsAPS) {
 
     // Fetch header bids
-    if (window.__cmp) {
+    if (window.__cmp  && !window.__cmp.streamampOverridden) {
         window.__cmp('getConsentData', null, function (data, success) {
             streamampUtils.log('Getting CMP Consent Data', { data, success })
             streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS);
