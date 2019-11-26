@@ -228,7 +228,8 @@ var dnsUrls = {
     a9: 'https://c.amazon-adsystem.com/aax2/apstag.js',
     prebid: 'https://static.amp.services/prebid2.37.0.js',
     gpt: 'https://securepubads.g.doubleclick.net/tag/js/gpt.js',
-    config: 'https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/' + publisher + '.min.js'
+    config: 'https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/' + publisher + '.min.js',
+    cmp: 'https://quantcast.mgr.consensu.org/'
 };
 
 window.streamampConfig = window.streamampConfig || {};
@@ -499,6 +500,7 @@ function streamampInit() {
         streamampUtils.log('Firing beforeInit event', streamampConfig.beforeInit);
         streamampConfig.beforeInit();
     }
+    
     // filters ad units for current break points - removing unnecessary bidders
     var adUnitsGPT = streamampGetAdUnitsPerBreakpoint();
 
@@ -679,7 +681,7 @@ function streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS) {
 function auction(adUnitsGPT, adUnitsAPS) {
 
     // Fetch header bids
-    if (window.__cmp) {
+    if (window.__cmp && !window.__cmp.streamampOverridden) {
         window.__cmp('getConsentData', null, function (data, success) {
             streamampUtils.log('Getting CMP Consent Data', { data, success })
             streamampFetchHeaderBids(adUnitsGPT, adUnitsAPS);
