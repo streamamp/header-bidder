@@ -226,7 +226,7 @@ streamampUtils.log('Setting publisher as', publisher)
 
 var dnsUrls = {
     a9: 'https://c.amazon-adsystem.com/aax2/apstag.js',
-    prebid: 'https://static.amp.services/prebid2.37.0.js',
+    prebid: 'https://static.amp.services/prebid3.4.0.js',
     gpt: 'https://securepubads.g.doubleclick.net/tag/js/gpt.js',
     config: 'https://cdn.jsdelivr.net/gh/streamAMP/client-configs@latest/' + publisher + '.min.js',
     cmp: 'https://quantcast.mgr.consensu.org/'
