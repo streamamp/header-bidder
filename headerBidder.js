@@ -16,7 +16,7 @@ var streamampConfig = {
     hasRefreshBids: true,
     minRefreshTime: 45,
     maxRefreshTime: 90,
-    adUnitsToRefresh: ['ukbf_sticky'],
+    adUnitsToRefresh: ['UKBF_Sticky'],
     hasCollapsedEmptyDivs: true,
     publisher_id: 'SiftMedia/UKBusinessForum',
     token: 'JJd43srQfu97oyw7PLf3LSfxvIZj6CgwdzZh0EAbVd3JslCNYLJpxzOI5ohYl5xH',
@@ -84,82 +84,82 @@ var streamampConfig = {
                 tagid: '70984'
             }
         }, // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '971 - 9999'
-        //     ],
-        //     params: {
-        //         placementId: 22039666
-        //     }
-        // },
-        // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '971 - 9999',
-        //         '728 - 970',
-        //         '0 - 727'
-        //     ],
-        //     params: {
-        //         placementId: 22039666
-        //     }
-        // },
-        {
-            bidder: 'ix',
-            labelAny: ['971 - 9999', ],
-            params: {
-                siteId: '422929',
-                size: [300, 600]
-            }
-        }, {
-            bidder: 'ix',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                siteId: '422929',
-                size: [300, 250]
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['971 - 9999'],
-            params: {
-                unit: '540778444',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                unit: '540778444',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['971 - 9999'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237787',
-                adSlot: 'Sift-ukbf_mpu_300x600@300x600'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237788',
-                adSlot: 'Sift-ukbf_mpu_300x250@300x250'
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['971 - 9999'],
-            params: {
-                placementId: 16175433
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                placementId: 16175510
-            }
-        }],
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '971 - 9999'
+            //     ],
+            //     params: {
+            //         placementId: 22039666
+            //     }
+            // },
+            // {
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '971 - 9999',
+            //         '728 - 970',
+            //         '0 - 727'
+            //     ],
+            //     params: {
+            //         placementId: 22039666
+            //     }
+            // },
+            {
+                bidder: 'ix',
+                labelAny: ['971 - 9999', ],
+                params: {
+                    siteId: '422929',
+                    size: [300, 600]
+                }
+            }, {
+                bidder: 'ix',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    siteId: '422929',
+                    size: [300, 250]
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['971 - 9999'],
+                params: {
+                    unit: '540778444',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    unit: '540778444',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['971 - 9999'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237787',
+                    adSlot: 'Sift-ukbf_mpu_300x600@300x600'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237788',
+                    adSlot: 'Sift-ukbf_mpu_300x250@300x250'
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['971 - 9999'],
+                params: {
+                    placementId: 16175433
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    placementId: 16175510
+                }
+            }],
         breakpoints: {
             '971 - 9999': [[300, 600], [300, 250]],
             '728 - 970': [[300, 250]],
@@ -209,82 +209,82 @@ var streamampConfig = {
                 tagid: '70986'
             }
         }, // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '971 - 9999'
-        //     ],
-        //     params: {
-        //         placementId: 22039670
-        //     }
-        // },
-        // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '971 - 9999',
-        //         '728 - 970',
-        //         '0 - 727'
-        //     ],
-        //     params: {
-        //         placementId: 22039670
-        //     }
-        // },
-        {
-            bidder: 'ix',
-            labelAny: ['971 - 9999'],
-            params: {
-                siteId: '423998',
-                size: [300, 600]
-            }
-        }, {
-            bidder: 'ix',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                siteId: '423998',
-                size: [300, 250]
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['971 - 9999'],
-            params: {
-                unit: '540778445',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                unit: '540778445',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['971 - 9999'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237789',
-                adSlot: 'Sift-ukbf_mpu_2_300x600@300x600'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237790',
-                adSlot: 'Sift-ukbf_mpu_2_300x250@300x250'
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['971 - 9999'],
-            params: {
-                placementId: 16175511
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
-            params: {
-                placementId: 16175513
-            }
-        }],
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '971 - 9999'
+            //     ],
+            //     params: {
+            //         placementId: 22039670
+            //     }
+            // },
+            // {
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '971 - 9999',
+            //         '728 - 970',
+            //         '0 - 727'
+            //     ],
+            //     params: {
+            //         placementId: 22039670
+            //     }
+            // },
+            {
+                bidder: 'ix',
+                labelAny: ['971 - 9999'],
+                params: {
+                    siteId: '423998',
+                    size: [300, 600]
+                }
+            }, {
+                bidder: 'ix',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    siteId: '423998',
+                    size: [300, 250]
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['971 - 9999'],
+                params: {
+                    unit: '540778445',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    unit: '540778445',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['971 - 9999'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237789',
+                    adSlot: 'Sift-ukbf_mpu_2_300x600@300x600'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237790',
+                    adSlot: 'Sift-ukbf_mpu_2_300x250@300x250'
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['971 - 9999'],
+                params: {
+                    placementId: 16175511
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['971 - 9999', '728 - 970', '0 - 727'],
+                params: {
+                    placementId: 16175513
+                }
+            }],
         breakpoints: {
             '971 - 9999': [[300, 600], [300, 250]],
             '728 - 970': [[300, 250]],
@@ -347,352 +347,352 @@ var streamampConfig = {
                 tagid: '70989'
             }
         }, // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '971 - 9999'
-        //     ],
-        //     params: {
-        //         placementId: 22039671
-        //     }
-        // },
-        // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '971 - 9999',
-        //         '728 - 970'
-        //     ],
-        //     params: {
-        //         placementId: 22039671
-        //     }
-        // },
-        // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '0 - 727'
-        //     ],
-        //     params: {
-        //         placementId: 22039671
-        //     }
-        // },
-        {
-            bidder: 'ix',
-            labelAny: ['971 - 9999'],
-            params: {
-                siteId: '424000',
-                size: [970, 250]
-            }
-        }, {
-            bidder: 'ix',
-            labelAny: ['971 - 9999', '728 - 970', ],
-            params: {
-                siteId: '424000',
-                size: [728, 90]
-            }
-        }, {
-            bidder: 'ix',
-            labelAny: ['0 - 727'],
-            params: {
-                siteId: '424000',
-                size: [320, 50]
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['971 - 9999'],
-            params: {
-                unit: '540778452',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['971 - 9999', '728 - 970'],
-            params: {
-                unit: '540778452',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'openx',
-            labelAny: ['0 - 727'],
-            params: {
-                unit: '540778452',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['971 - 9999'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237791',
-                adSlot: 'Sift-ukbf_top_970x250@970x250'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['971 - 9999', '728 - 970'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237792',
-                adSlot: 'Sift-ukbf_top_728x90@728x90'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['0 - 727'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2237793',
-                adSlot: 'Sift-ukbf_top_320x50@320x50'
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['971 - 9999'],
-            params: {
-                placementId: 16175518
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['971 - 9999', '728 - 970'],
-            params: {
-                placementId: 16175519
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['0 - 727'],
-            params: {
-                placementId: 16175516
-            }
-        }],
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '971 - 9999'
+            //     ],
+            //     params: {
+            //         placementId: 22039671
+            //     }
+            // },
+            // {
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '971 - 9999',
+            //         '728 - 970'
+            //     ],
+            //     params: {
+            //         placementId: 22039671
+            //     }
+            // },
+            // {
+            //     bidder: 'improvedigital',
+            //     labelAny: [
+            //         '0 - 727'
+            //     ],
+            //     params: {
+            //         placementId: 22039671
+            //     }
+            // },
+            {
+                bidder: 'ix',
+                labelAny: ['971 - 9999'],
+                params: {
+                    siteId: '424000',
+                    size: [970, 250]
+                }
+            }, {
+                bidder: 'ix',
+                labelAny: ['971 - 9999', '728 - 970', ],
+                params: {
+                    siteId: '424000',
+                    size: [728, 90]
+                }
+            }, {
+                bidder: 'ix',
+                labelAny: ['0 - 727'],
+                params: {
+                    siteId: '424000',
+                    size: [320, 50]
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['971 - 9999'],
+                params: {
+                    unit: '540778452',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['971 - 9999', '728 - 970'],
+                params: {
+                    unit: '540778452',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'openx',
+                labelAny: ['0 - 727'],
+                params: {
+                    unit: '540778452',
+                    delDomain: 'streamamp-d.openx.net'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['971 - 9999'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237791',
+                    adSlot: 'Sift-ukbf_top_970x250@970x250'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['971 - 9999', '728 - 970'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237792',
+                    adSlot: 'Sift-ukbf_top_728x90@728x90'
+                }
+            }, {
+                bidder: 'pubmatic',
+                labelAny: ['0 - 727'],
+                params: {
+                    publisherId: '127864',
+                    pmzoneid: '2237793',
+                    adSlot: 'Sift-ukbf_top_320x50@320x50'
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['971 - 9999'],
+                params: {
+                    placementId: 16175518
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['971 - 9999', '728 - 970'],
+                params: {
+                    placementId: 16175519
+                }
+            }, {
+                bidder: 'streamamp',
+                labelAny: ['0 - 727'],
+                params: {
+                    placementId: 16175516
+                }
+            }],
         breakpoints: {
             '971 - 9999': [[970, 250], [728, 90]],
             '728 - 970': [[728, 90]],
             '0 - 727': [[320, 50]]
         }
     }, // {
-    //     code: 'ukbf-mpu-3',
-    //     path: '/4394518/ukbf-mpu-3',
-    //     mediaTypes: {
-    //         banner: {
-    //             sizes: [
-    //                 [
-    //                     300,
-    //                     250
-    //                 ]
-    //             ]
-    //         }
-    //     },
-    //     isSticky: false,
-    //     safeFrame: false,
-    //     outOfPage: false,
-    //     bids: [
-    //         {
-    //             bidder: 'criteo',
-    //             labelAny: [
-    //                 '971 - 9999',
-    //                 '728 - 970',
-    //                 '0 - 727'
-    //             ],
-    //             params: {
-    //                 zoneId: 1382491,
-    //                 publisherSubId: 'ukbf_mpu_3_300x250'
-    //             }
-    //         },
-    //         {
-    //             bidder: 'emx_digital',
-    //             labelAny: [
-    //                 '971 - 9999',
-    //                 '728 - 970',
-    //                 '0 - 727'
-    //             ],
-    //             params: {
-    //                 tagid: '74366'
-    //             }
-    //         },
-    //         // {
-    //         //     bidder: 'improvedigital',
-    //         //     labelAny: [
-    //         //         '971 - 9999',
-    //         //         '728 - 970',
-    //         //         '0 - 727'
-    //         //     ],
-    //         //     params: {
-    //         //         placementId: 22051763
-    //         //     }
-    //         // },
-    //         {
-    //             bidder: 'ix',
-    //             labelAny: [
-    //                 '971 - 9999',
-    //                 '728 - 970',
-    //                 '0 - 727'
-    //             ],
-    //             params: {
-    //                 siteId: '423999',
-    //                 size: [
-    //                     300,
-    //                     250
-    //                 ]
-    //             }
-    //         },
-    //         {
-    //             bidder: 'openx',
-    //             labelAny: [
-    //                 '971 - 9999',
-    //                 '728 - 970',
-    //                 '0 - 727'
-    //             ],
-    //             params: {
-    //                 unit: '540796815',
-    //                 delDomain: 'streamamp-d.openx.net'
-    //             }
-    //         },
-    //         {
-    //             bidder: 'pubmatic',
-    //             labelAny: [
-    //                 '971 - 9999',
-    //                 '728 - 970',
-    //                 '0 - 727'
-    //             ],
-    //             params: {
-    //                 publisherId: '127864',
-    //                 pmzoneid: '2237794',
-    //                 adSlot: 'Sift-ukbf_mpu_3_300x250@300x250'
-    //             }
-    //         },
-    //         {
-    //             bidder: 'streamamp',
-    //             labelAny: [
-    //                 '971 - 9999',
-    //                 '728 - 970',
-    //                 '0 - 727'
-    //             ],
-    //             params: {
-    //                 placementId: 16411665
-    //             }
-    //         }
-    //     ],
-    //     breakpoints: {
-    //         '971 - 9999': [
-    //             [
-    //                 300,
-    //                 250
-    //             ]
-    //         ],
-    //         '728 - 970': [
-    //             [
-    //                 300,
-    //                 250
-    //             ]
-    //         ],
-    //         '0 - 727': [
-    //             [
-    //                 300,
-    //                 250
-    //             ]
-    //         ]
-    //     }
-    // },
-    {
-        code: 'UKBF_Sticky',
-        path: '/4394518/UKBF_Sticky',
-        mediaTypes: {
-            banner: {
-                sizes: [[320, 50]]
-            }
-        },
-        isSticky: true,
-        safeFrame: false,
-        outOfPage: false,
-        bids: [{
-            bidder: 'conversant',
-            labelAny: ['0 - 727'],
-            params: {
-                site_id: '201189'
-            }
-        }, {
-            bidder: 'criteo',
-            labelAny: ['0 - 727'],
-            params: {
-                zoneId: 1382490,
-                publisherSubId: 'ukbf_sticky_320x50'
-            }
-        }, {
-            bidder: 'emx_digital',
-            labelAny: ['0 - 727'],
-            params: {
-                tagid: '80042'
-            }
-        }, // {
-        //     bidder: 'improvedigital',
-        //     labelAny: [
-        //         '0 - 727'
+        //     code: 'ukbf-mpu-3',
+        //     path: '/4394518/ukbf-mpu-3',
+        //     mediaTypes: {
+        //         banner: {
+        //             sizes: [
+        //                 [
+        //                     300,
+        //                     250
+        //                 ]
+        //             ]
+        //         }
+        //     },
+        //     isSticky: false,
+        //     safeFrame: false,
+        //     outOfPage: false,
+        //     bids: [
+        //         {
+        //             bidder: 'criteo',
+        //             labelAny: [
+        //                 '971 - 9999',
+        //                 '728 - 970',
+        //                 '0 - 727'
+        //             ],
+        //             params: {
+        //                 zoneId: 1382491,
+        //                 publisherSubId: 'ukbf_mpu_3_300x250'
+        //             }
+        //         },
+        //         {
+        //             bidder: 'emx_digital',
+        //             labelAny: [
+        //                 '971 - 9999',
+        //                 '728 - 970',
+        //                 '0 - 727'
+        //             ],
+        //             params: {
+        //                 tagid: '74366'
+        //             }
+        //         },
+        //         // {
+        //         //     bidder: 'improvedigital',
+        //         //     labelAny: [
+        //         //         '971 - 9999',
+        //         //         '728 - 970',
+        //         //         '0 - 727'
+        //         //     ],
+        //         //     params: {
+        //         //         placementId: 22051763
+        //         //     }
+        //         // },
+        //         {
+        //             bidder: 'ix',
+        //             labelAny: [
+        //                 '971 - 9999',
+        //                 '728 - 970',
+        //                 '0 - 727'
+        //             ],
+        //             params: {
+        //                 siteId: '423999',
+        //                 size: [
+        //                     300,
+        //                     250
+        //                 ]
+        //             }
+        //         },
+        //         {
+        //             bidder: 'openx',
+        //             labelAny: [
+        //                 '971 - 9999',
+        //                 '728 - 970',
+        //                 '0 - 727'
+        //             ],
+        //             params: {
+        //                 unit: '540796815',
+        //                 delDomain: 'streamamp-d.openx.net'
+        //             }
+        //         },
+        //         {
+        //             bidder: 'pubmatic',
+        //             labelAny: [
+        //                 '971 - 9999',
+        //                 '728 - 970',
+        //                 '0 - 727'
+        //             ],
+        //             params: {
+        //                 publisherId: '127864',
+        //                 pmzoneid: '2237794',
+        //                 adSlot: 'Sift-ukbf_mpu_3_300x250@300x250'
+        //             }
+        //         },
+        //         {
+        //             bidder: 'streamamp',
+        //             labelAny: [
+        //                 '971 - 9999',
+        //                 '728 - 970',
+        //                 '0 - 727'
+        //             ],
+        //             params: {
+        //                 placementId: 16411665
+        //             }
+        //         }
         //     ],
-        //     params: {
-        //         placementId: 22128382
+        //     breakpoints: {
+        //         '971 - 9999': [
+        //             [
+        //                 300,
+        //                 250
+        //             ]
+        //         ],
+        //         '728 - 970': [
+        //             [
+        //                 300,
+        //                 250
+        //             ]
+        //         ],
+        //         '0 - 727': [
+        //             [
+        //                 300,
+        //                 250
+        //             ]
+        //         ]
         //     }
         // },
         {
-            bidder: 'ix',
-            labelAny: ['0 - 727'],
-            params: {
-                siteId: '424001,',
-                size: [300, 50]
+            code: 'UKBF_Sticky',
+            path: '/4394518/UKBF_Sticky',
+            mediaTypes: {
+                banner: {
+                    sizes: [[320, 50]]
+                }
+            },
+            isSticky: true,
+            safeFrame: false,
+            outOfPage: false,
+            bids: [{
+                bidder: 'conversant',
+                labelAny: ['0 - 727'],
+                params: {
+                    site_id: '201189'
+                }
+            }, {
+                bidder: 'criteo',
+                labelAny: ['0 - 727'],
+                params: {
+                    zoneId: 1382490,
+                    publisherSubId: 'ukbf_sticky_320x50'
+                }
+            }, {
+                bidder: 'emx_digital',
+                labelAny: ['0 - 727'],
+                params: {
+                    tagid: '80042'
+                }
+            }, // {
+                //     bidder: 'improvedigital',
+                //     labelAny: [
+                //         '0 - 727'
+                //     ],
+                //     params: {
+                //         placementId: 22128382
+                //     }
+                // },
+                {
+                    bidder: 'ix',
+                    labelAny: ['0 - 727'],
+                    params: {
+                        siteId: '424001,',
+                        size: [300, 50]
+                    }
+                }, {
+                    bidder: 'openx',
+                    labelAny: ['0 - 727'],
+                    params: {
+                        unit: '540861910',
+                        delDomain: 'streamamp-d.openx.net'
+                    }
+                }, {
+                    bidder: 'pubmatic',
+                    labelAny: ['0 - 727'],
+                    params: {
+                        publisherId: '127864',
+                        pmzoneid: '2348481',
+                        adSlot: 'Sift-ukbf_Sticky_320x50@320x50'
+                    }
+                }, {
+                    bidder: 'streamamp',
+                    labelAny: ['0 - 727'],
+                    params: {
+                        placementId: 17085238
+                    }
+                }],
+            breakpoints: {
+                '0 - 727': [[320, 50]]
             }
         }, {
-            bidder: 'openx',
-            labelAny: ['0 - 727'],
-            params: {
-                unit: '540861910',
-                delDomain: 'streamamp-d.openx.net'
-            }
-        }, {
-            bidder: 'pubmatic',
-            labelAny: ['0 - 727'],
-            params: {
-                publisherId: '127864',
-                pmzoneid: '2348481',
-                adSlot: 'Sift-ukbf_Sticky_320x50@320x50'
-            }
-        }, {
-            bidder: 'streamamp',
-            labelAny: ['0 - 727'],
-            params: {
-                placementId: 17085238
+            code: 'UKBF_RichMedia',
+            path: '/4394518/UKBF_RichMedia',
+            mediaTypes: {
+                banner: {
+                    sizes: [[1, 1]]
+                }
+            },
+            isSticky: false,
+            safeFrame: false,
+            outOfPage: false,
+            bids: [{
+                bidder: 'justpremium',
+                labelAny: ['971 - 9999', '728 - 970', ],
+                params: {
+                    zone: '82105',
+                    allow: ['as', 'ci', 'sa', 'pa']
+                }
+            }, {
+                bidder: 'justpremium',
+                labelAny: ['0 - 727'],
+                params: {
+                    zone: '82105',
+                    allow: ['mt', 'is', 'mo']
+                }
+            }],
+            breakpoints: {
+                '971 - 9999': [[1, 1]],
+                '728 - 970': [[1, 1]],
+                '0 - 727': [[1, 1]]
             }
         }],
-        breakpoints: {
-            '0 - 727': [[320, 50]]
-        }
-    }, {
-        code: 'UKBF_RichMedia',
-        path: '/4394518/UKBF_RichMedia',
-        mediaTypes: {
-            banner: {
-                sizes: [[1, 1]]
-            }
-        },
-        isSticky: false,
-        safeFrame: false,
-        outOfPage: false,
-        bids: [{
-            bidder: 'justpremium',
-            labelAny: ['971 - 9999', '728 - 970', ],
-            params: {
-                zone: '82105',
-                allow: ['as', 'ci', 'sa', 'pa']
-            }
-        }, {
-            bidder: 'justpremium',
-            labelAny: ['0 - 727'],
-            params: {
-                zone: '82105',
-                allow: ['mt', 'is', 'mo']
-            }
-        }],
-        breakpoints: {
-            '971 - 9999': [[1, 1]],
-            '728 - 970': [[1, 1]],
-            '0 - 727': [[1, 1]]
-        }
-    }],
     cmp: {
-        isEnabled: true,
+        isEnabled: false,
         pathnamesToExclude: ['/help/privacy-policy/'],
         config: {
             'UI Layout': 'popup',
@@ -796,17 +796,17 @@ var streamampUtils = {
         arguments = Array.from(arguments)
         var typeTextColor
         switch (type) {
-        case 'pbjs':
-            typeTextColor = '#3B88C3;';
-            break;
-        case 'gpt':
-            typeTextColor = '#1E8E3E;';
-            break;
-        case 'aps':
-            typeTextColor = '#FF9900;';
-            break;
-        default:
-            typeTextColor = '';
+            case 'pbjs':
+                typeTextColor = '#3B88C3;';
+                break;
+            case 'gpt':
+                typeTextColor = '#1E8E3E;';
+                break;
+            case 'aps':
+                typeTextColor = '#FF9900;';
+                break;
+            default:
+                typeTextColor = '';
         }
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: ' + typeTextColor + '; padding: 1px 0;')
         arguments.unshift('font-family: sans-serif; font-weight: bold; color: #FFF; background: #2F0D00; padding: 1px 3px; margin: 2px 0; border-radius: 3px;')
@@ -1124,15 +1124,15 @@ function streamampSetup() {
         var currencyValue = streamampConfig.currency.value;
         var currencyFlag = streamampConfig.currency.enabled;
         var currencyFileURL = 'https://static.amp.services/currency/conversion-rates.json';
-        streamampUtils.logPbjs('Queuing setConfig() for consent management')
-        pbjs.setConfig({
-            consentManagement: {
-                cmpApi: 'iab',
-                timeout: 10000,
-                allowAuctionWithoutConsent: true
-            }
-        });
-        streamampUtils.logPbjs('Queuing setConfig() for filter settings')
+//         streamampUtils.logPbjs('Queuing setConfig() for consent management')
+//         pbjs.setConfig({
+//             consentManagement: {
+//                 cmpApi: 'iab',
+//                 timeout: 10000,
+//                 allowAuctionWithoutConsent: true
+//             }
+//         });
+//         streamampUtils.logPbjs('Queuing setConfig() for filter settings')
         pbjs.setConfig({
             userSync: {
                 filterSettings: {
@@ -1400,70 +1400,70 @@ function streamampInitializeCmp() {
     var scpt = document.getElementsByTagName('script')[0];
     scpt.parentNode.insertBefore(elem, scpt);
     (function() {
-        var gdprAppliesGlobally = false;
-        function addFrame() {
-            if (!window.frames['__cmpLocator']) {
-                if (document.body) {
-                    var body = document.body
-                      , iframe = document.createElement('iframe');
-                    iframe.style = 'display:none';
-                    iframe.name = '__cmpLocator';
-                    body.appendChild(iframe);
-                } else {
-                    setTimeout(addFrame, 5);
-                }
-            }
-        }
-        addFrame();
-        function cmpMsgHandler(event) {
-            var msgIsString = typeof event.data === "string";
-            var json;
-            if (msgIsString) {
-                json = event.data.indexOf("__cmpCall") != -1 ? JSON.parse(event.data) : {};
-            } else {
-                json = event.data;
-            }
-            if (json.__cmpCall) {
-                var i = json.__cmpCall;
-                window.__cmp(i.command, i.parameter, function(retValue, success) {
-                    var returnMsg = {
-                        "__cmpReturn": {
-                            "returnValue": retValue,
-                            "success": success,
-                            "callId": i.callId
-                        }
-                    };
-                    event.source.postMessage(msgIsString ? JSON.stringify(returnMsg) : returnMsg, '*');
-                });
-            }
-        }
-        window.__cmp = function(c) {
-            var b = arguments;
-            if (!b.length) {
-                return __cmp.a;
-            } else if (b[0] === 'ping') {
-                b[2]({
-                    "gdprAppliesGlobally": gdprAppliesGlobally,
-                    "cmpLoaded": false
-                }, true);
-            } else if (c == '__cmp')
-                return false;
-            else {
-                if (typeof __cmp.a === 'undefined') {
-                    __cmp.a = [];
-                }
-                __cmp.a.push([].slice.apply(b));
-            }
-        }
-        ;
-        window.__cmp.gdprAppliesGlobally = gdprAppliesGlobally;
-        window.__cmp.msgHandler = cmpMsgHandler;
-        if (window.addEventListener) {
-            window.addEventListener('message', cmpMsgHandler, false);
-        } else {
-            window.attachEvent('onmessage', cmpMsgHandler);
-        }
-    }
+          var gdprAppliesGlobally = false;
+          function addFrame() {
+              if (!window.frames['__cmpLocator']) {
+                  if (document.body) {
+                      var body = document.body
+                        , iframe = document.createElement('iframe');
+                      iframe.style = 'display:none';
+                      iframe.name = '__cmpLocator';
+                      body.appendChild(iframe);
+                  } else {
+                      setTimeout(addFrame, 5);
+                  }
+              }
+          }
+          addFrame();
+          function cmpMsgHandler(event) {
+              var msgIsString = typeof event.data === "string";
+              var json;
+              if (msgIsString) {
+                  json = event.data.indexOf("__cmpCall") != -1 ? JSON.parse(event.data) : {};
+              } else {
+                  json = event.data;
+              }
+              if (json.__cmpCall) {
+                  var i = json.__cmpCall;
+                  window.__cmp(i.command, i.parameter, function(retValue, success) {
+                      var returnMsg = {
+                          "__cmpReturn": {
+                              "returnValue": retValue,
+                              "success": success,
+                              "callId": i.callId
+                          }
+                      };
+                      event.source.postMessage(msgIsString ? JSON.stringify(returnMsg) : returnMsg, '*');
+                  });
+              }
+          }
+          window.__cmp = function(c) {
+              var b = arguments;
+              if (!b.length) {
+                  return __cmp.a;
+              } else if (b[0] === 'ping') {
+                  b[2]({
+                      "gdprAppliesGlobally": gdprAppliesGlobally,
+                      "cmpLoaded": false
+                  }, true);
+              } else if (c == '__cmp')
+                  return false;
+              else {
+                  if (typeof __cmp.a === 'undefined') {
+                      __cmp.a = [];
+                  }
+                  __cmp.a.push([].slice.apply(b));
+              }
+          }
+          ;
+          window.__cmp.gdprAppliesGlobally = gdprAppliesGlobally;
+          window.__cmp.msgHandler = cmpMsgHandler;
+          if (window.addEventListener) {
+              window.addEventListener('message', cmpMsgHandler, false);
+          } else {
+              window.attachEvent('onmessage', cmpMsgHandler);
+          }
+      }
     )();
     window.__cmp('init', streamampConfig.cmp.config);
     if (streamampConfig.cmp.hasCustomStyles && isNotEmptyCmp(streamampConfig.cmp.styles)) {
@@ -1674,7 +1674,7 @@ function streamampGetAdUnitsPerBreakpoint() {
 }
 function streamampRefreshBids(selectedAdUnits) {
     streamampUtils.log(selectedAdUnits ? ('Refreshing',
-    selectedAdUnits) : 'Refreshing all ad units')
+      selectedAdUnits) : 'Refreshing all ad units')
     var bidTimeout = _streamampVariables.bidTimeout
     var gptSlots = streamampGetAdUnitsPerBreakpoint();
     var apstagSlots;
@@ -1846,4 +1846,4 @@ window.streamamp = {
     }
 };
 
-Leya.setKey(streamampConfig.token)
+Leya.setKey(streamampConfig.token);
